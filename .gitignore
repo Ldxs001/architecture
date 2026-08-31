@@ -2,7 +2,6 @@
 book/build/*.otf
 book/build/book_print*.pdf
 book/build/book_print*.html
-book/build/output/
 __pycache__/
 *.pyc
 book/build/cover.png
