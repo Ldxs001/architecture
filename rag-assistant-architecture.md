@@ -9,7 +9,7 @@ See https://creativecommons.org/licenses/by-sa/4.0/ for details.
 
 > 独立 RAG 智能体 — LLM 驱动的组合式语义检索与多库路由。
 > 作者：wUwproject | 许可证：Apache 2.0
-> 更新：2026-07-24 (v2.1.0b2) — 新增智能体插件系统 + AI 插件生成器
+> 更新：2026-08-21 (v2.4.1) — top-N 多 KB 路由 + PDF 引擎迁移 pypdfium2 + 乱码三层检测
 
 ---
 
@@ -69,6 +69,8 @@ RAG Assistant 是一个**本地知识库问答智能体**，基于 local-rag-bui
 | `default` | 无匹配，路由到 default |
 | `direct` | 用户直接指定了知识库 |
 | `broadcast` | 语义回退失败后全量广播所有 KB 检索 |
+
+**top-N 多 KB 路由（v2.3.0）**：`route_query()` 从 top-1（只取最高分 KB）改为 top-N——收集所有过阈值 KB，按分数降序取前 N 个，激活 `retrieve_context` 预留的多 KB 并查循环。跨域问题（如"量子物理与音乐的关系"）不再漏召回次相关 KB。三层防护：UI 限 1-10 → 代码夹 `[1,10]` → 运行时限实际过阈值 KB 数。配置项 `router.top_n`（默认 1 保持兼容）与 `router.classify_threshold`（主路由 KB 分数下限，默认 0.3）；外部 API `POST /api/kb/query` 支持 `top_n` 参数单次临时指定。
 
 ### 1.3 KB 签名生成流程（v1.7.0b1）
 
@@ -148,7 +150,9 @@ rag-assistant/
 │
 ├── vendor/                          # ★ 内嵌第三方库（零 pip 也可在受限环境中运行）
 │   ├── bs4/                         # BeautifulSoup4
-│   ├── pypdf/                       # PDF 解析
+│   ├── pypdfium2/                   # PDF 解析（Google PDFium 引擎，v2.4.0 替换 pypdf）
+│   ├── pypdfium2_raw/               # PDFium 预编译二进制（含 pdfium.dll）
+│   ├── pypdfium2_cfg/               # pypdfium2 配置
 │   ├── markdownify/                 # HTML → Markdown
 │   └── soupsieve/                   # CSS 选择器（bs4 依赖）
 │
@@ -308,9 +312,14 @@ slices = [
 
 **文件上传流程**：点击文件选择按钮 → 文件以 base64 二进制上传到服务器 `data/imports/` 目录并记录到 `import_manifest.json`，同时聊天框出现系统通知。用户输入"入库"后 LLM 发出 `path="MANIFEST"` 指令，系统读取清单逐个走完整导入管线。
 
-**PDF 导入**：
+**PDF 导入**（v2.4.0 引擎迁移 pypdf → pypdfium2，三层 OCR 判断）：
 - 多页 PDF 合并全部页内容后切分（`"\n\n".join(d.page_content for d in docs)`）
-- OCR 回退条件：`total_chars < 50` 无条件触发；`total_chars >= 50` + 中文文件名 + CJK 占比 < 10% 也触发
+- PDF 引擎：pypdfium2（Google PDFium），从根源消除 pypdf 的 ToUnicode CMap 形似字缺陷（`Iethods`→`Methods` 类）
+- 三层 OCR 判断（v2.4.0 重构，替代旧版两层判断）：
+  1. **二进制类型判断**：读 PDF 二进制检测 `/Font` 与 `/Image`——无 `/Font` 直接 OCR（无文本层）；有 `/Image` 且无文本页占比 > 50% 直接 OCR（混合版扫描件）
+  2. **信号 2 乱码检测**（逐页）：英文词间距丢失（`alpha > 0.5 且 max_run > 30`）
+  3. **信号 4 乱码检测**（逐页）：中文常用字覆盖率 < 50%（`_COMMON_CJK` ~200 高频字表）
+  - 乱码页占比 > 10% → 整篇 OCR；乱码 chunk 不剔除，让检索自然降权
 - 英文正常 PDF 不走 OCR
 
 ### 3.4 RAG 封装层 — `rag_wrapper.py`
@@ -620,7 +629,7 @@ _exec_import() → 读取 manifest → 逐个文件:
   1. _do_import(path, kb)
   2. 入库路由（auto_classify 决定目标 KB）
   3. RAGWrapper.import_file() → import_documents_to_kb()
-     ├─ 文档加载（PDF: PyPDFLoader + OCR 回退; 其他: TextLoader）
+     ├─ 文档加载（PDF: pypdfium2 提取 + 三层 OCR 判断; 其他: TextLoader）
      ├─ 三层切分流水线（守卫栈 → 主策略 → 后处理）
      ├─ ChromaDB 写入（SM3 去重 + SQLite+HNSW 写入前备份 + 写入失败自动回滚）
      └─ KB 签名自动更新（BCE 语义质心 → jieba → 停用词过滤 → BCE 排序 → top-12）
@@ -808,7 +817,7 @@ setup.bat
 
 ```
 langchain>=0.1                    # LangChain 框架
-langchain-community>=0.3          # 社区加载器（PyPDFLoader, TextLoader）
+langchain-community>=0.3          # 社区加载器（TextLoader 等；PDF 已直用 pypdfium2）
 langchain-huggingface>=0.1        # HuggingFace 嵌入
 langchain-chroma>=0.1             # ChromaDB 向量存储
 langchain-text-splitters>=0.3     # 文本切分
@@ -872,7 +881,7 @@ numpy>=1.24                       # 向量余弦相似度计算
 - **本地知识库**：ChromaDB 向量库存储在本地 `data/kb/`，不离开用户机器
 - **联网搜索可选**：默认关闭，需用户手动启用
 - **模型本地加载**：所有模型（嵌入/路由/reranker/NLI）通过本地磁盘加载，`local_files_only=True`
-- **自包含 vendor**：`vendor/` 嵌入 bs4 / pypdf / markdownify 等第三方库，零外部 pip 安装也可运行
+- **自包含 vendor**：`vendor/` 嵌入 bs4 / pypdfium2 / markdownify 等第三方库，零外部 pip 安装也可运行
 
 ---
 
@@ -885,6 +894,9 @@ numpy>=1.24                       # 向量余弦相似度计算
 | v2.0.0b1 | 1.x → 2.x HNSW 索引引擎更换；Chroma 适配器重构；setup.bat 全量重建提示 |
 | v1.8.0 | 外部 API 端口独立（8767）；引擎独立化（engine/ 副本自包含） |
 | v1.7.0 | PROTOCOL 协议升级；KB 签名多向量路由 |
+| v2.4.1 | 版本号重发（2.4.0 内容） |
+| v2.4.0 | PDF 引擎迁移 pypdf → pypdfium2；乱码三层检测（二进制类型/信号2词间距/信号4常用字覆盖）；vendor 替换 |
+| v2.3.0 | top-N 多 KB 路由（router.top_n/classify_threshold）；外部 API top_n 参数；死代码清理（FallbackRouter） |
 | v1.5.0b1 | Web 配置页面内嵌（iframe 模式）；双端口架构 |
 | v1.3.0-beta | 双面板 Web UI（配置 + 对话） |
 | v1.2.0 | 组合检索（LLM 分词 + entities × attrs 穷举展开） |

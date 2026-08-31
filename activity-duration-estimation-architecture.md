@@ -7,6 +7,8 @@ See https://creativecommons.org/licenses/by-sa/4.0/ for details.
 
 # activity-duration-estimation 架构与规范体系文档
 
+> 更新：2026-06-14（v1.11.7，1.11.1-1.11.7 为格式修复与全流程改造对齐，非架构级变更）
+
 > 完整解读 v1.11.0 版的架构设计、七子技能体系、三库隔离模式与全流程编排
 > 生成时间：2026-06-06（v1.11.0 最新更新）
 

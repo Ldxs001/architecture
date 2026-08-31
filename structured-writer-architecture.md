@@ -9,7 +9,7 @@ See https://creativecommons.org/licenses/by-sa/4.0/ for details.
 
 > 结构化写作智能体 — 双线架构：通用写作线（模板驱动子结构级逐段写作）+ 小说模式线（章级规划→写作→章检→修复→全文三检）。
 > 作者：wUwproject | 许可证：Apache 2.0
-> 更新：2026-08-18 (v3.1.0b5)
+> 更新：2026-08-20 (v3.1.8) — 小说线配置统一源 nover_config.py（常量收拢：篇幅/温度/max_tokens/关键词放大）
 
 ---
 
@@ -225,7 +225,11 @@ content 字段支持 `citation_check` 和 `citation_format` 配置（`[x]=1.` �
 - **事实自检**：内嵌标记法 `【事实待核查】`（零额外 LLM 调用），文末汇总「建议人工复审」清单
 - **错误容错**：LLM 异常写错误提示、空内容跳过、RAG 超时不塞 prompt
 
-### 5.3 小说线入口 — `novel_bridge.py`
+### 5.3 小说线配置统一源 — `novel/nover_config.py`（v3.1.7）
+
+小说线散落在各文件的常量统一收拢为单一配置源：`LENGTH_TARGETS` / `LENGTH_LABELS` / `LENGTH_CHAPTERS`（long 统一 11-20 章，去掉 `if i>15: break` 硬截断）/ `KEY_UPSCALE=1.5`（C4 通用线关键词放大）/ `JUDGE_TEMPERATURE` / `JUDGE_MAX_TOKENS`（C8 判定）/ `REPAIR_WORD_TOLERANCE` / `DEFAULT_NOVEL_STYLE`。涉及 planner.py / writer.py / novel_workflow_engine.py / novel_state_manager.py / novel_context_loader.py / novel_writer.py / novel_bridge.py 等 10+ 文件统一 import。v3.1.8 通用线子结构字数同样统一：`SUB_WORDS_MIN=200 / SUB_WORDS_DEFAULT=500 / SUB_WORDS_MAX=800`（planner.py 顶部常量，13 处硬编码替换）。
+
+### 5.4 小说线入口 — `novel_bridge.py`
 
 ```
 generate_scene_config(topic, template)   # 场景配置（人物含 MBTI+荣格原型/时代/地点/冲突/文风）
@@ -491,4 +495,4 @@ generate_novel_article() 逐章循环：
 
 ---
 
-*最后更新：2026-08-18 (v3.1.0b5)*
+*最后更新：2026-08-20 (v3.1.8)*

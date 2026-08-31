@@ -1,0 +1,8 @@
+# 打印版 PDF 与字体不进仓（同母书策略）；make_pdf/gen_covers 脚本进仓
+book/build/*.otf
+book/build/book_print*.pdf
+book/build/book_print*.html
+book/build/output/
+__pycache__/
+*.pyc
+book/build/cover.png

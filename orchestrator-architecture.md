@@ -198,7 +198,7 @@ _execute_tree(nodes, output, depth, step_counter, prev_output):
 ### 4.2 单技能执行（_run_skill_node → chain_engine）
 
 ```
-1. _find_skill_dir(name)             # 找技能目录（~/.workbuddy/skills/）
+1. _find_skill_dir(name)             # 找技能目录（<skills>/，随宿主平台安装位置而定）
 2. _get_skill_scripts(sdir)          # 收集 scripts/ 下可执行脚本
 3. _get_main_script(name, scripts)   # 入口匹配（下划线/连字符归一化 + main/cli/run 标准入口 + 排除纯配置脚本）
 4. _run_script(main, cli_args, ...)  # subprocess 真跑
