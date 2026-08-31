@@ -11,11 +11,11 @@ Copyright (c) 2026 wUwproject
 
 | 系统 | 位置 | 版本 | 运行方式 |
 |------|------|------|---------|
-| skill-standardization | `<skills>/skill-standardization/` | 2.103.0 | 宿主平台按 SKILL.md 触发（audit/create/update/refactor/bump/readonly 六模式） |
-| semantic-split | `<skills>/semantic-split/` | 3.1.1 | 宿主平台按 SKILL.md 触发（语义拆分 → 结构化规划单元） |
-| activity-duration-estimation | `<skills>/activity-duration-estimation/` | 1.11.7 | 宿主平台按 SKILL.md 触发（WBS 分解 + 三点估算/蒙特卡洛） |
+| skill-standardization | `maby_skills/skill-standardization/` | 2.103.0 | 宿主平台按 SKILL.md 触发（audit/create/update/refactor/bump/readonly 六模式） |
+| semantic-split | `maby_skills/semantic-split/` | 3.1.1 | 宿主平台按 SKILL.md 触发（语义拆分 → 结构化规划单元） |
+| activity-duration-estimation | `maby_skills/activity-duration-estimation/` | 1.11.7 | 宿主平台按 SKILL.md 触发（WBS 分解 + 三点估算/蒙特卡洛） |
 
-技能的"运行"= 平台读取 SKILL.md 后按声明调用 `scripts/` 脚本；也可被编排器（orchestrator）以 **subprocess** 直接跑脚本。
+技能发布于 maby_skills 仓库（`<skills>/` 为任意宿主平台安装后的目录）；技能的"运行"= 宿主平台读取 SKILL.md 后按声明调用 `scripts/` 脚本；也可被编排器（orchestrator）以 **subprocess** 直接跑脚本。
 
 ## 二、编排器（独立进程 + Web UI）
 

@@ -2,7 +2,7 @@
 """严格字数多口径统计"""
 import io, re, sys
 sys.stdout.reconfigure(encoding='utf-8')
-t = io.open(r'C:\Users\sm001\WorkBuddy\Cogito_Scribit\book\build\output\全书.md', encoding='utf-8').read()
+t = io.open(r'C:\Users\sm001\WorkBuddy\architecture\book\build\output\架构解析全书.md', encoding='utf-8').read()
 
 # 1. 原始字符数
 total = len(t)

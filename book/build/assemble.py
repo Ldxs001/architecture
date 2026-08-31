@@ -13,8 +13,6 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STRUCTURE = [
     ("frontmatter/00_版权页.md", "版权页"),
     ("frontmatter/00_导读.md", "导读"),
-    ("frontmatter/附录A_统一术语表.md", "附录 A 统一术语表"),
-    ("frontmatter/附录B_运行速查.md", "附录 B 运行速查"),
     ("skill-standardization-architecture.md", "架构 01 · skill-standardization"),
     ("semantic-split-architecture.md", "架构 02 · semantic-split"),
     ("activity-duration-estimation-architecture.md", "架构 03 · activity-duration-estimation"),
@@ -22,6 +20,8 @@ STRUCTURE = [
     ("structured-writer-architecture.md", "架构 05 · structured-writer"),
     ("orchestrator-architecture.md", "架构 06 · orchestrator（实验性）"),
     ("silprespec-orchestrator-architecture.md", "架构 07 · silprespec-orchestrator（实验性）"),
+    ("frontmatter/附录A_统一术语表.md", "附录 A 统一术语表"),
+    ("frontmatter/附录B_运行速查.md", "附录 B 运行速查"),
 ]
 
 def strip_spdx(text):
