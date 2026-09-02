@@ -9,6 +9,8 @@
 - 剥 SPDX 头（strip_spdx）
 - 剥章头「摘要 + 更新行/生成时间」blockquote（成书无摘要/日期戳）
 - 剥篇尾「*最后更新：…*」脚注（成书无版本戳）
+- 剥章尾「本文档基于 …综合分析整理」生成戳记 blockquote（与最后更新脚注同类写作痕迹，strip_compilation_note）
+- 剥正文分隔线 `---`/`***`（代码块外独立行；成书层级由 ## 承担，排版册同款规则，strip_horizontal_rules）
 - 章题统一为母书族系格式 `NN｜标题`（母书为 `第 X 部 · NN｜标题`，姊妹卷无部；去章题版本后缀）
 """
 import sys, io, os, re
@@ -66,6 +68,38 @@ def strip_writing_traces(body):
     lines = [l for l in lines if not _FOOTNOTE_RE.match(l)]
     return '\n'.join(lines)
 
+def strip_compilation_note(body):
+    """剥章尾「本文档基于 …综合分析整理」生成戳记 blockquote。
+    与篇尾「*最后更新：…*」脚注同类——文档生成时刻的元信息戳记，非架构内容。
+    判据锚定：blockquote 首行以 `> 本文档基于` 起始，连带跳过其连续 `>` 续行。"""
+    lines, out, skipping = body.split('\n'), [], False
+    for l in lines:
+        ls = l.strip()
+        if skipping:
+            if ls.startswith('>'):
+                continue
+            skipping = False
+        if ls.startswith('> 本文档基于'):
+            skipping = True
+            continue
+        out.append(l)
+    return '\n'.join(out)
+
+def strip_horizontal_rules(body):
+    """剥正文分隔线（代码块外独立 `---`/`***`/`___` 行）。
+    成书章节层级由 `## N` 标题承担，横线为视觉冗余（排版册 STRUCTURE_GUIDE 同款规则）。
+    代码块围栏内的横线属文本内容，保留。"""
+    lines, out, in_code = body.split('\n'), [], False
+    for l in lines:
+        if l.strip().startswith('```'):
+            in_code = not in_code
+            out.append(l)
+            continue
+        if not in_code and l.strip() in ('---', '***', '___'):
+            continue
+        out.append(l)
+    return '\n'.join(out)
+
 def retitle(body, title):
     """章题对齐：替换首个 H1 为成书章题"""
     lines = body.split('\n')
@@ -84,7 +118,7 @@ def assemble():
             path = os.path.join(ROOT, '..', rel)
         with io.open(path, encoding='utf-8') as f:
             text = f.read()
-        body = strip_writing_traces(strip_spdx(text)).strip()
+        body = strip_horizontal_rules(strip_compilation_note(strip_writing_traces(strip_spdx(text)))).strip()
         if title:
             body = retitle(body, title)
         parts.append(body)

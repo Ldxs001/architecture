@@ -226,7 +226,7 @@ a:hover { text-decoration: underline; }
 <blockquote>前置规范编排器、RAG 智能体、结构化写作引擎……本书收录 wUwproject 七套核心技能与智能体的架构设计文档——它们是《我思故我写》方法论在真实工程里的落地形态。</blockquote>
 <ul><li><strong>作者</strong>：wUwproject</li><li><strong>协议</strong>：CC BY-SA 4.0（署名-相同方式共享）——可自由复制、分发、演绎，须署名 wUwproject 并按相同协议共享；各系统代码实现为 Apache 2.0</li><li><strong>版本</strong>：arch-v1.0.1（2026 年 9 月）</li><li><strong>规模</strong>：约 3.9 万字（出版折算口径：汉字 + 英文单词 + 数字串，与母书一致），11 章（版权页 + 导读 + 架构 01-07 + 附录 A/B）</li><li><strong>母书</strong>：《我思故我写——一本 AI 写成的书：AI 时代的方法论、边界与人类自洽》（v1.2.0 完结版，35 章）——本书是其工程实现侧的姊妹卷</li></ul>
 <h2 id="h2">版本</h2>
-<ul><li>2026 年 8 月 · 初版（arch-v1.0.0）：收录 7 篇架构文档（5 篇成熟 + 2 篇实验性），全部与对应工具/智能体的真实代码核对同步（rag-assistant 补 top-N 多 KB 路由与 pypdfium2 引擎迁移、structured-writer 补小说线配置统一源、skill-standardization/activity-duration-estimation 版本头对齐）</li><li>2026 年 9 月 · arch-v1.0.1：入书清洗管线化——章头「摘要 + 更新行/生成时间」blockquote 与篇尾「最后更新」脚注由拼接脚本自动剥离（STRUCTURE_GUIDE 去留规则的硬约束落地，不再依赖手工转化），章题对齐母书族系格式（<code>NN｜标题</code>，无部，去章题版本后缀）</li></ul>
+<ul><li>2026 年 8 月 · 初版（arch-v1.0.0）：收录 7 篇架构文档（5 篇成熟 + 2 篇实验性），全部与对应工具/智能体的真实代码核对同步（rag-assistant 补 top-N 多 KB 路由与 pypdfium2 引擎迁移、structured-writer 补小说线配置统一源、skill-standardization/activity-duration-estimation 版本头对齐）</li><li>2026 年 9 月 · arch-v1.0.1：入书清洗管线化——章头「摘要 + 更新行/生成时间」blockquote、篇尾「最后更新」脚注与「本文档基于 …综合分析整理」生成戳记、正文分隔线（代码块外 <code>---</code>）全部由拼接脚本自动剥离（STRUCTURE_GUIDE 去留规则的硬约束落地，不再依赖手工转化），成书层级统一由 <code>## N</code> 承担；章题对齐母书族系格式（<code>NN｜标题</code>，无部，去章题版本后缀），七篇尾部样式统一</li></ul>
 <h2 id="h3">与母书的关系</h2>
 <ul><li>母书回答<strong>为什么</strong>（方法论、原则、边界）；本书回答<strong>怎么做</strong>（工程实现、模块划分、代码架构）</li><li>母书附录 B 工具索引是索引，本书是这些工具的深度展开</li><li>两册独立版本：母书 v1.2.0 完结不再逐版同步；本书随工具迭代独立更新（各篇版本号跟随对应工具的真实版本）</li></ul>
 <h1 id="h4">导读：方法论 ↔ 架构映射</h1>
@@ -326,7 +326,6 @@ a:hover { text-decoration: underline; }
 <h3 id="h15">1.5 六种执行模式（v2.95.0）</h3>
 <table><thead><tr><th>模式</th><th>命令</th><th>作用</th><th>风险等级</th></tr></thead><tbody><tr><td><strong>audit</strong></td><td><code>python -m scripts.skill_audit audit <dir> --confirmed --mode audit</code></td><td>独立全量审计</td><td>🟢 只读</td></tr><tr><td><strong>create</strong></td><td><code>python -m scripts.skill_audit create <name> --confirmed --mode create</code></td><td>从模板创建标准的 skill 骨架</td><td>🟢 无害</td></tr><tr><td><strong>update</strong></td><td><code>python -m scripts.skill_audit update <dir> --confirmed --mode update</code></td><td>增量检查 + 可选修复</td><td>🟡 轻度修改</td></tr><tr><td><strong>refactor</strong></td><td><code>python -m scripts.skill_audit refactor <dir> --confirmed --mode refactor</code></td><td>全流程改造（蓝皮书→备份→审计→修复→验证→bump→清理）</td><td>🟡 有备份保障</td></tr><tr><td><strong>bump</strong></td><td><code>python -m scripts.skill_audit bump <dir> --type fix --desc "..." --confirmed --mode bump</code></td><td>版本号三端同步升级</td><td>🟢 无害</td></tr><tr><td><strong>readonly</strong></td><td><code>python -m scripts.skill_audit rules --confirmed --mode readonly</code></td><td>只读查询（列出规则/模板）</td><td>🟢 只读</td></tr></tbody></table>
 <blockquote><strong>语义门禁 + 模式-命令映射锁</strong>（v2.94.0+）：所有模式入口必须传 <code>--confirmed</code> + <code>--mode</code> 参数。<code>--mode</code> 值必须与子命令一致（如 <code>audit --mode audit</code>），不一致则 <code>exit(1)</code> 阻断。不再有"不传则不校验"的向后兼容。</blockquote>
-<hr/>
 <h2 id="h16">二、完整审查规则体系（R-01 ~ R-26）</h2>
 <h3 id="h17">2.1 类别 A：Frontmatter 结构（R-01 ~ R-05）</h3>
 <table><thead><tr><th>规则</th><th>严重度</th><th>检查内容</th><th>通过条件</th></tr></thead><tbody><tr><td><strong>R-01</strong></td><td>ERROR</td><td>YAML frontmatter 存在性 + 11 required + 2 conditional 字段 + _meta.json 7 字段完整性</td><td>文件以 <code>---</code> 开头并包含闭合 <code>---</code>；11 required + 2 conditional 字段分层检查；_meta.json 含 7 标准字段</td></tr><tr><td><strong>R-02</strong></td><td>ERROR</td><td><code>name</code> 字段</td><td>frontmatter 含 <code>name:</code>，值非空，且与目录名一致</td></tr><tr><td><strong>R-03</strong></td><td>ERROR</td><td><code>version</code> 字段（SemVer + 变更语义规则）</td><td>值符合纯数字 x.y.z 格式（禁止 v 前缀）</td></tr><tr><td><strong>R-04</strong></td><td>ERROR</td><td><code>description</code> 字段</td><td>含 <code>description:</code>，值非空</td></tr><tr><td><strong>R-05</strong></td><td>WARN</td><td>name = 目录名</td><td>frontmatter 的 name 与所在目录名一致</td></tr></tbody></table>
@@ -347,7 +346,6 @@ a:hover { text-decoration: underline; }
 <table><thead><tr><th>编号</th><th>级别</th><th>检查项</th></tr></thead><tbody><tr><td>C-01</td><td>ERROR</td><td>references/LICENSE.md 存在</td></tr><tr><td>C-02</td><td>ERROR</td><td>SKILL.md 正文无独立 license 章节</td></tr><tr><td>C-03</td><td>ERROR</td><td>根目录无 LICENSE 文件</td></tr><tr><td>C-04</td><td>WARN</td><td>scripts/ 下无 LICENSE 文件</td></tr><tr><td>C-05</td><td>WARN</td><td>渐进式索引表含 LICENSE.md 引用</td></tr><tr><td>C-06</td><td>ERROR</td><td>references/LICENSE.md 非空</td></tr><tr><td>C-07</td><td>ERROR</td><td>根目录无 README.md</td></tr><tr><td>C-08</td><td>ERROR</td><td>SKILL.md 正文 README 章节拆分</td></tr></tbody></table>
 <h3 id="h25">2.9 规则汇总统计</h3>
 <table><thead><tr><th>类别</th><th>包含规则</th><th>ERROR</th><th>WARN</th><th>目的</th></tr></thead><tbody><tr><td>A. Frontmatter</td><td>R-01~R-05</td><td>4</td><td>1</td><td>技能身份标识 + _meta.json</td></tr><tr><td>B. 正文结构</td><td>R-06~R-10</td><td>3</td><td>2</td><td>文档结构和质量</td></tr><tr><td>C. 产出物与目录</td><td>R-11~R-12</td><td>2</td><td>0</td><td>目录隔离和数据安全</td></tr><tr><td>D. 安全与权限</td><td>R-13~R-17</td><td>2</td><td>3</td><td>权限声明和风险控制</td></tr><tr><td>E. 质量规范</td><td>R-18~R-21</td><td>0</td><td>4</td><td>内容质量和可读性</td></tr><tr><td>F. 合规与维护</td><td>R-22~R-24</td><td>0</td><td>3</td><td>长期维护一致性</td></tr><tr><td>G. 写作格式</td><td>R-25</td><td>0</td><td>1</td><td>文档排版建议（19 项子检查）</td></tr><tr><td>H. 文档声明</td><td>R-26</td><td>0</td><td>1</td><td>LICENSE + README 声明</td></tr><tr><td><strong>合计</strong></td><td><strong>R-01~R-26</strong></td><td><strong>11</strong></td><td><strong>15</strong></td><td></td></tr></tbody></table>
-<hr/>
 <h2 id="h26">三、核心设计原则</h2>
 <h3 id="h27">D1: 零外部依赖</h3>
 <h3 id="h28">D2: 铁律验证阻断模式</h3>
@@ -358,7 +356,6 @@ a:hover { text-decoration: underline; }
 <h3 id="h33">D7: Manifest 驱动清理</h3>
 <h3 id="h34">D8: 脚本级强制（非 AI 自觉）</h3>
 <p>（详见 SKILL.md 独立章节，此处不再重复）</p>
-<hr/>
 <h2 id="h35">四、误报分类机制（v2.94.0 重写）</h2>
 <blockquote>这是 v2.94.0 最大变化。旧版 <code>--classify</code> 无类别约束，LLM 可随意标记任何 FAIL 为误判。新版引入两类固定类别。</blockquote>
 <h3 id="h36">4.1 两级误报分类</h3>
@@ -376,7 +373,6 @@ python -m scripts.skill_audit audit &lt;dir&gt; --classify C-stale_doc_ref --cat
 <p>一致性审查的 <code>C-missing_doc_ref</code> 和 <code>C-stale_doc_ref</code> 复用同一类别机制。v2.95.0 修复了旧版只提取扁平文件名的 bug，嵌套目录树路径现可正确匹配（<code>references/antipatterns.md</code> 不再被误判为根目录的 <code>antipatterns.md</code>）。</p>
 <h3 id="h39">4.4 向后兼容</h3>
 <p>旧格式 <code>.verify_fp.json</code>（纯 ID 列表）被忽略。每次审计和审查都是全新的一次性任务，不继承历史误判。</p>
-<hr/>
 <h2 id="h40">五、审计后自动修复体系（fix.py）</h2>
 <h3 id="h41">5.1 fix key 与 LLM 手动修复分界</h3>
 <p>修复循环根据 fix key 类型自动分流：</p>
@@ -408,7 +404,6 @@ else:
     break  # 只有 0 remaining 才放行</code></pre>
 <h3 id="h43">5.3 修复函数清单（35+）</h3>
 <table><thead><tr><th>函数</th><th>对应规则</th><th>修复内容</th></tr></thead><tbody><tr><td><code>fix_name</code></td><td>R-01</td><td>修复 name 字段</td></tr><tr><td><code>fix_description</code></td><td>R-04</td><td>修复 description 字段</td></tr><tr><td><code>fix_version</code></td><td>R-03</td><td>修复 version 字段</td></tr><tr><td><code>fix_author</code></td><td>R-02</td><td>修复 author 字段</td></tr><tr><td><code>fix_h1</code> / <code>fix_h1_version</code> / <code>fix_h1_position</code></td><td>R-06</td><td>H1 标题处理</td></tr><tr><td><code>fix_section_trigger</code> / <code>fix_section_core</code> / <code>fix_section_workflow</code></td><td>R-07~R-09</td><td>章节创建</td></tr><tr><td><code>fix_progressive_loading</code></td><td>R-21</td><td>渐进式加载模板句</td></tr><tr><td><code>fix_antipattern_progressive</code></td><td>R-18</td><td>反模式文档</td></tr><tr><td><code>fix_faq_progressive</code></td><td>R-19</td><td>FAQ 文档</td></tr><tr><td><code>fix_writing_standards</code></td><td>R-20</td><td>写作规范</td></tr><tr><td><code>fix_data_dir_compliance</code></td><td>R-22</td><td>数据目录声明</td></tr><tr><td><code>fix_split_nonstandard</code></td><td>R-17</td><td>非标章节拆分</td></tr><tr><td><code>fix_section_order</code></td><td>R-25 C-11</td><td>章节重排</td></tr><tr><td><code>fix_progressive_index_table</code></td><td>C-13</td><td>渐进式索引表</td></tr><tr><td><code>fix_reclassify_section(action)</code></td><td>R-17 Phase 3</td><td>通用非标归类</td></tr><tr><td><code>fix_frontmatter_fields</code></td><td>R-01</td><td>补全 frontmatter</td></tr><tr><td><code>fix_license_compliance</code></td><td>R-26</td><td>LICENSE 规范</td></tr><tr><td><code>apply_consistency_fix</code></td><td>一致性审查</td><td>outdated_rule_ref 修复</td></tr><tr><td><strong><code>fix_code_block_markers</code></strong></td><td><strong>R-22(写作标准)</strong></td><td><strong>缩进代码块→围栏 ``` 块（v2.101.7 新增）</strong></td></tr><tr><td><strong><code>fix_list_mixing</code></strong></td><td><strong>C-05</strong></td><td><strong>同章节混排列表统一为多数方样式（v2.101.7 新增）</strong></td></tr><tr><td><strong><code>fix_code_block_lang</code></strong></td><td><strong>C-07</strong></td><td><strong>裸 ``` 补语言标识（v2.101.7 新增）</strong></td></tr><tr><td><strong><code>fix_section_completeness</code></strong></td><td><strong>C-12</strong></td><td><strong>空章节补充格式线索（v2.101.7 新增）</strong></td></tr><tr><td><strong><code>fix_faq_error_handling</code></strong></td><td><strong>C-19</strong></td><td><strong>创建/补充 FAQ 错误处理章节（v2.101.7 新增）</strong></td></tr></tbody></table>
-<hr/>
 <h2 id="h44">六、关键流程</h2>
 <h3 id="h45">6.1 refactor 模式完整步骤（v2.101.8）</h3>
 <div class="flow">
@@ -435,11 +430,8 @@ else:
 <div class="flow-phase"><span class="flow-phase-tag">【真问题】</span><span class="flow-phase-note"> 以上两类均不满足 <span class="flow-inline-arrow">→</span> 必须修复，不得标记为误判</span></div>
 <div class="flow-step lv2" style="margin-left:14px"> <span class="flow-inline-arrow">→</span> <span class="edge-fall">记下 #ID，运行 --show-fix ID 获取修复指引</span></div>
 </div>
-<hr/>
 <h2 id="h47">七、关键版本变更摘要（v2.82.0 → v2.95.0）</h2>
 <table><thead><tr><th>版本</th><th>核心变更</th></tr></thead><tbody><tr><td><strong>2.94.0</strong></td><td><strong>--category 误判类别强制 + --mode 必传 + 修复循环 exit(2) 阻断 + body.json 合法化 + C-11 三层 instruction + 一致性审查嵌套目录修复 + OMP 硬编码泛化</strong></td></tr><tr><td><strong>2.95.0</strong></td><td>文档同步更新（--classify --category、--mode 必传、section_names 加入 _llm_only_fix_keys、guide.md 命令示例更新）</td></tr></tbody></table>
-<hr/>
-<blockquote>本文档基于 skill-standardization v2.101.8 的 SKILL.md + references/*.md + 核心脚本综合分析整理。</blockquote>
 <h1 id="h48">02｜semantic-split 架构与规范体系文档</h1>
 <h2 id="h49">一、系统概览</h2>
 <p>semantic-split 是一个 <strong>语义拆分与智能规划工具集</strong>，将用户自然语言任务描述拆解为结构化步骤输出，围绕以下闭环运行：</p>
@@ -479,7 +471,6 @@ else:
 ├── model_index.json            # 模型路径索引
 └── outputs/                    # 输出缓存
     └── .structure_examples.json</code></pre>
-<hr/>
 <h2 id="h53">二、三管线递进调度系统</h2>
 <h3 id="h54">2.1 Pipeline B：正则结构分析（Type 管线）</h3>
 <p><strong>核心文件</strong>：<code>pipeline_b.py</code> | <strong>参考</strong>：<code>references/split_rules.md</code> + <code>references/constraint_annotation.md</code></p>
@@ -552,7 +543,6 @@ def _load_reranker():
 <h4 id="h66">步骤解析（降级策略）</h4>
 <p><code>parse_steps_from_agent()</code> 提供三级降级解析：</p>
 <table><thead><tr><th>级别</th><th>尝试</th><th>方法</th></tr></thead><tbody><tr><td>1</td><td>直接 JSON 解析</td><td><code>json.loads()</code> → list 或 dict 提取</td></tr><tr><td>2</td><td>代码块提取</td><td>从 ``<code>json </code>`` 区块提取</td></tr><tr><td>3</td><td>空列表回退</td><td>返回 []</td></tr></tbody></table>
-<hr/>
 <h2 id="h67">三、10 道门禁钩子系统</h2>
 <p><strong>核心文件</strong>：<code>semantic_pipeline.py</code>（第 37-57 行）</p>
 <p>10 道钩子覆盖从输入校验到 WP 分解的完整流程，每道钩子独立记录状态和详情。所有钩子通过后，最终输出才被视为完整。</p>
@@ -585,7 +575,6 @@ def _load_reranker():
 <p>所有钩子初始化为 <code>False</code>，每个钩子在其对应操作完成后通过 <code>_hook()</code> 函数标记为 <code>True</code>。<code>_hook()</code> 同时写入 <code>HOOK_LOG</code> 列表，记录钩子名称、状态标记和详情文本。</p>
 <h3 id="h70">3.3 三种钩子行为模式</h3>
 <table><thead><tr><th>模式</th><th>对应钩子</th><th>行为</th></tr></thead><tbody><tr><td><strong>阻断</strong></td><td>input_valid</td><td>空输入直接返回 error，不走管线</td></tr><tr><td><strong>分支</strong></td><td>decision_made</td><td>命中模板 → 跳管线 C；未命中 → 走 Pipeline A 语义 + Pipeline C 推理</td></tr><tr><td><strong>强制顺序</strong></td><td>钩子 6/7/8</td><td>双视角推理子步骤按 focus → diverge → integrate 强制顺序执行</td></tr></tbody></table>
-<hr/>
 <h2 id="h71">四、自增强闭环</h2>
 <p><strong>核心机制</strong>：<code>semantic_pipeline.py</code> 中的 <code>_save_template()</code> + <code>_scan_matching()</code> + <code>_load_all_capabilities()</code> + <code>match_json()</code></p>
 <h3 id="h72">4.1 闭环流程</h3>
@@ -605,7 +594,6 @@ def _load_reranker():
 <pre><code>task_name = re.sub(r&#x27;^(请|帮|帮我|我想|我需要|麻烦)&#x27;, &#x27;&#x27;, text.strip())[:20]
 clean_name = re.sub(r&#x27;[^\u4e00-\u9fff\w]&#x27;, &#x27;&#x27;, task_name)[:16]
 # 输出: capabilities/{clean_name}_v1.json</code></pre>
-<hr/>
 <h2 id="h76">五、渐进加载决策树</h2>
 <p><strong>核心文件</strong>：<code>references/loading_decision_tree.md</code> | <strong>实现</strong>：<code>semantic_pipeline.py</code> + <code>pipeline_a.py should_load_json()</code> + <code>json_manager.py cmd_scan()</code></p>
 <h3 id="h77">5.1 三阶段决策</h3>
@@ -629,7 +617,6 @@ python scripts/json_manager.py scan --keywords &lt;任务关键词&gt; --type ca
 
 # ③ 均不命中时，检查归类统计是否需要凝练规则级
 python scripts/json_manager.py categorize --threshold 5</code></pre>
-<hr/>
 <h2 id="h80">六、JSON 模板管理体系</h2>
 <p><strong>核心文件</strong>：<code>json_manager.py</code> | <strong>参考</strong>：<code>references/json_schema.md</code></p>
 <h3 id="h81">6.1 双层 JSON 体系</h3>
@@ -687,7 +674,6 @@ python scripts/json_manager.py categorize --threshold 5</code></pre>
 }</code></pre>
 <h3 id="h84">6.4 json_manager CLI 子命令</h3>
 <table><thead><tr><th>子命令</th><th>功能</th><th>核心参数</th><th>适用场景</th></tr></thead><tbody><tr><td><code>scan</code></td><td>关键词扫描匹配</td><td><code>--keywords</code>, <code>--type</code>, <code>--threshold</code>, <code>--top</code></td><td>渐进加载决策的①②阶段</td></tr><tr><td><code>categorize</code></td><td>归类统计（按 tag 分组）</td><td><code>--threshold</code>（默认 5）</td><td>判断是否达到规则级凝练阈值</td></tr><tr><td><code>generalize</code></td><td>通用化字段替换</td><td><code>--input</code>, <code>--params</code>, <code>--auto</code>, <code>--output</code></td><td>保存模板前的通用化步骤</td></tr><tr><td><code>rule-gen</code></td><td>生成规则级 JSON 框架</td><td><code>--files</code> / <code>--tag</code>, <code>--output</code></td><td>同类能力级 ≥5 份后凝练</td></tr><tr><td><code>list</code></td><td>列出所有 JSON 文件</td><td><code>--type</code>, <code>--tag</code>, <code>--verbose</code></td><td>模板库概览</td></tr><tr><td><code>create</code></td><td>创建新 JSON 骨架</td><td><code>--type</code>, <code>--name</code>, <code>--output</code></td><td>手动创建新模板</td></tr><tr><td><code>validate</code></td><td>验证 JSON 格式</td><td><code>--file</code></td><td>字段完整性验证</td></tr><tr><td><code>info</code></td><td>显示 JSON 详情</td><td><code>--file</code></td><td>查看单条模板详细信息</td></tr></tbody></table>
-<hr/>
 <h2 id="h85">七、模型管理</h2>
 <p><strong>核心文件</strong>：<code>model_manager.py</code> | <strong>参考</strong>：<code>references/attribution.md</code></p>
 <h3 id="h86">7.1 模型清单</h3>
@@ -707,7 +693,6 @@ for d in os.listdir(MODELS_DIR):
 # 未找到则查 HF 缓存
 safe_id = f&quot;models--{model_id.replace(&#x27;/&#x27;, &#x27;--&#x27;)}&quot;
 snap_dir = CACHE_DIR / safe_id / &quot;snapshots&quot;</code></pre>
-<hr/>
 <h2 id="h89">八、核心设计原则</h2>
 <h3 id="h90">D1: Pipeline B 零外部依赖</h3>
 <p>Pipeline B（正则结构分析）仅使用 Python 标准库 <code>re</code> + <code>pathlib</code>，零 <code>pip install</code> 需求。5W2H 提取、主语识别、约束标注、注意力锚定全部用正则实现。</p>
@@ -735,7 +720,6 @@ snap_dir = CACHE_DIR / safe_id / &quot;snapshots&quot;</code></pre>
 <p><strong>目的</strong>：通用化后仍保持精确的可执行性，不会丢失步骤细节。</p>
 <h3 id="h97">D8: 原子写入安全</h3>
 <p>所有 JSON 文件写入使用 <code>.tmp</code> + <code>os.replace()</code> 原子操作模式，防止写入过程中断导致文件损坏。</p>
-<hr/>
 <h2 id="h98">九、交互方式</h2>
 <h3 id="h99">9.1 主入口命令行</h3>
 <pre><code># 完整流程（含智能体推理）
@@ -779,14 +763,11 @@ python scripts/setup_env.py --check-only
 
 # 清华镜像
 python scripts/setup_env.py --auto-install --mirror tsinghua</code></pre>
-<hr/>
 <h2 id="h103">十、外部依赖</h2>
 <table><thead><tr><th>包</th><th>用途</th><th>必需？</th><th>对应管线</th></tr></thead><tbody><tr><td>sentence-transformers</td><td>bge embedding + CrossEncoder</td><td>是</td><td>Pipeline A</td></tr><tr><td>huggingface-hub</td><td>模型下载（hf_hub_download）</td><td>是</td><td>model_manager</td></tr><tr><td>modelscope</td><td>ModelScope 国内下载</td><td>可选</td><td>model_manager</td></tr><tr><td>torch</td><td>PyTorch 后端（sentence-transformers 依赖）</td><td>推荐</td><td>Pipeline A</td></tr></tbody></table>
 <blockquote><strong>Pipeline B 零依赖</strong>：纯 Python 标准库实现，即装即用。 <strong>Pipeline C 零依赖</strong>：推理上下文构建使用 Python 标准库，推理由智能体原生完成。</blockquote>
-<hr/>
 <h2 id="h104">十一、版本历史</h2>
 <table><thead><tr><th>版本</th><th>日期</th><th>核心变化</th></tr></thead><tbody><tr><td>2.1.0</td><td>2026-05-22</td><td>初始标准化版本：skill-standardization 引擎创建</td></tr><tr><td>2.2.0</td><td>2026-05-23</td><td>R-11 产出物路径修正：<code>data/</code> → <code>.standardization/semantic-split/data/</code></td></tr><tr><td>2.3.0</td><td>2026-05-23</td><td>DATA_DIR 路径修正 + _meta.json data_dir 字段</td></tr><tr><td>2.4.0</td><td>2026-05-23</td><td>5W2H 维度提取 + 约束标注 + 双视角推理整合</td></tr><tr><td>2.4.1</td><td>2026-05-23</td><td>SKILL.md 瘦身 (315→200行) + 渐进式 MD 体系完善</td></tr><tr><td>2.5.0</td><td>2026-05-23</td><td>标准化改造：章节重排、示例更新、路径修正</td></tr><tr><td>2.6.0</td><td>2026-06-30</td><td>refactor 全流程：0 ERROR 0 WARN</td></tr><tr><td><strong>3.0.0</strong></td><td><strong>2026-07-01</strong></td><td><strong>三管线架构落地：pipeline_a/b/c + semantic_pipeline + model_manager + setup_env + 自增强闭环 + 10 道钩子</strong></td></tr><tr><td>3.0.1</td><td>2026-07-01</td><td>删除 Stanza（1.1GB），Pipeline B 纯正则化 + 钩子系统 7→10 道</td></tr><tr><td>3.0.2</td><td>2026-07-01</td><td>双视角推理门禁强制化 + 清理所有 spaCy 残留</td></tr><tr><td>3.1.0</td><td>2026-07-01</td><td>修复 pipeline_b/c 死代码 + model_manager 索引错误 + 自增强闭环接入钩子</td></tr><tr><td><strong>3.1.1</strong></td><td><strong>2026-07-01</strong></td><td><strong>渐进式索引表恢复完整（R-25 fix 吞列 bug）</strong></td></tr></tbody></table>
-<hr/>
 <h2 id="h105">十二、数据流全景</h2>
 <div class="flow">
 <div class="flow-step lv1" style="margin-left:0px">输入文本（≤2000字）</div>
@@ -810,8 +791,6 @@ python scripts/setup_env.py --auto-install --mirror tsinghua</code></pre>
 <div class="flow-arrow">▼</div>
 <div class="flow-step lv1" style="margin-left:0px">输出 JSON（steps + wps + hooks + pipeline_summary）</div>
 </div>
-<hr/>
-<blockquote>本文档基于 semantic-split v3.1.1 的 SKILL.md + 14 个 references/*.md + 7 个核心脚本综合分析整理。</blockquote>
 <h1 id="h106">03｜activity-duration-estimation 架构与规范体系文档</h1>
 <h2 id="h107">一、系统概览</h2>
 <p>activity-duration-estimation 是一个 <strong>全周期项目管理工具集</strong>，围绕以下闭环运行：</p>
@@ -871,7 +850,6 @@ python scripts/setup_env.py --auto-install --mirror tsinghua</code></pre>
         ├── economic-report.html       # 经济效益报表模板
         ├── evm-report.html            # 挣值管理报表模板
         └── settings.html              # 设置面板模板</code></pre>
-<hr/>
 <h2 id="h110">二、七大子技能体系</h2>
 <blockquote>⚡ <strong>统一入口</strong>：<code>runner.py</code> 提供 <code>run_full()</code> 全流程执行，<code>run_pipeline()</code> 分阶段执行。 子技能可独立运行：<code>python scripts/analysis_engine.py --wbs "xxx"</code>、<code>python scripts/economic_analysis_engine.py --roi "yyy"</code></blockquote>
 <h3 id="h111">2.1 子技能 A：语义分析与方法推荐</h3>
@@ -931,7 +909,6 @@ tags: [dur_est, pert, cpm]
 β分布（PERT）：(O + 4M + P) / 6</code></pre>
 <p><strong>标准化接口</strong>（<code>knowledge_schema.py</code>）：</p>
 <table><thead><tr><th>函数</th><th>说明</th></tr></thead><tbody><tr><td><code>entry_to_markdown(entry)</code></td><td>知识条目 → Markdown 文档</td></tr><tr><td><code>parse_markdown_entry(md_text)</code></td><td>Markdown → 知识条目</td></tr><tr><td><code>query_knowledge(db_path, query)</code></td><td>跨库查询</td></tr><tr><td><code>skill_registry(query)</code></td><td>自动判断查询目标库</td></tr></tbody></table>
-<hr/>
 <h2 id="h126">三、全流程编排</h2>
 <h3 id="h127">3.1 PipelineState</h3>
 <p><code>runner.py</code> 的核心状态机：</p>
@@ -956,7 +933,6 @@ Phase 6: docs       — 项目文档生成（混合模式概率最大）</code><
 <h3 id="h129">3.3 LLM 交互点异常</h3>
 <p><code>LLMInteractionRequired</code> 异常在以下场景被触发，通知 LLM 参与：</p>
 <ul><li><code>parse</code> 阶段：5W2H 参数不完整 → 询问用户补充</li><li><code>wbs</code> 阶段：分解方法不确定 → 询问用户偏好</li><li><code>estimate</code> 阶段：参数缺失 → 询问用户或搜索外部知识</li><li><code>docs</code> 阶段：模板选择 → 询问用户</li></ul>
-<hr/>
 <h2 id="h130">四、核心设计原则</h2>
 <h3 id="h131">D1: 零外部依赖</h3>
 <p>所有脚本仅使用 Python 标准库 + SQLite，零 pip install。 <strong>目的</strong>：降低安装门槛，即装即用。</p>
@@ -968,27 +944,21 @@ Phase 6: docs       — 项目文档生成（混合模式概率最大）</code><
 <p><code>references/knowledge-interface.md</code> 定义了 YAML+MD 双格式标准，知识条目可读、可写、可导出。 <strong>目的</strong>：知识库不仅是存储，也是人类可读的参考文档。</p>
 <h3 id="h135">D5: 三阶段文档生成</h3>
 <p>手动 → 混合 → 全自动，覆盖从"仅框架"到"完整产出"全 spectrum。 <strong>目的</strong>：适应不同用户对文档完成度的需求差异。</p>
-<hr/>
 <h2 id="h136">五、配置体系</h2>
 <p><code>settings_manager.py</code> 统一管理，JSON 格式持久化，支持 CLI 和 HTML 面板两种修改方式。</p>
 <table><thead><tr><th>配置项</th><th>默认值</th><th>说明</th></tr></thead><tbody><tr><td><code>web_search_mode</code></td><td>auto</td><td>外部知识搜索模式（auto / manual）</td></tr><tr><td><code>kb_collect_mode</code></td><td>auto</td><td>知识库采集模式（auto / manual）</td></tr><tr><td><code>kb_query_mode</code></td><td>auto</td><td>知识库查询模式（auto / manual）</td></tr><tr><td><code>doc_template</code></td><td>null</td><td>项目文档模板选择</td></tr><tr><td><code>doc_write_mode</code></td><td>auto</td><td>文档写入模式（auto / manual / template）</td></tr></tbody></table>
 <p>HTML 面板支持实时修改并保存。</p>
-<hr/>
 <h2 id="h137">六、配置体系</h2>
 <p><em>（本节延续上一节标题的编号，实为同一节）</em></p>
 <p>settings_manager.py 支持以下交互方式：</p>
 <table><thead><tr><th>方式</th><th>命令</th></tr></thead><tbody><tr><td>CLI 查看</td><td><code>python scripts/settings_manager.py --show</code></td></tr><tr><td>CLI 设置</td><td><code>python scripts/settings_manager.py --set web_search_mode=manual</code></td></tr><tr><td>HTML 面板</td><td>启动服务 <code>python scripts/settings_server.py</code> → 浏览器打开 localhost 端口</td></tr></tbody></table>
-<hr/>
 <h2 id="h138">七、风险维度体系</h2>
 <p><strong>核心文件</strong>：<code>risk_dimensions.py</code> | <strong>参考</strong>：<code>references/risk-dimensions.md</code></p>
 <p>7 类风险维度（D1-D7）：</p>
 <table><thead><tr><th>维度</th><th>范围</th><th>输出</th></tr></thead><tbody><tr><td>D1 技术风险</td><td>技术实现不确定性</td><td>概率 × 影响矩阵</td></tr><tr><td>D2 进度风险</td><td>工期延误可能性</td><td>关键路径浮动预警</td></tr><tr><td>D3 成本风险</td><td>预算超支概率</td><td>蒙特卡洛成本分布</td></tr><tr><td>D4 资源风险</td><td>人力/设备短缺</td><td>资源负荷热力图</td></tr><tr><td>D5 质量风险</td><td>质量不达标</td><td>缺陷预测</td></tr><tr><td>D6 外部风险</td><td>供应链/政策变化</td><td>情景树</td></tr><tr><td>D7 管理风险</td><td>沟通/决策失效</td><td>RACI 缺口</td></tr></tbody></table>
-<hr/>
 <h2 id="h139">八、完整测试</h2>
 <p><code>full_test.py</code> 是全功能测试套件，100/100 PASS，覆盖：</p>
 <table><thead><tr><th>测试类别</th><th>数</th><th>说明</th></tr></thead><tbody><tr><td>WBS 分解</td><td>12</td><td>4 方法 × 3 场景</td></tr><tr><td>估算方法</td><td>16</td><td>4 方法 × 4 边界条件</td></tr><tr><td>CPM 分析</td><td>8</td><td>4 依赖类型 × 2 拓扑</td></tr><tr><td>蒙特卡洛模拟</td><td>6</td><td>3 分布 × 2 采样规模</td></tr><tr><td>经济效益</td><td>10</td><td>5 指标 × 2 场景</td></tr><tr><td>挣值管理</td><td>8</td><td>2 模式 × 4 场景</td></tr><tr><td>项目文档</td><td>12</td><td>3 模式 × 4 模板</td></tr><tr><td>风险维度</td><td>8</td><td>7 维度 + 组合</td></tr><tr><td>知识库接口</td><td>10</td><td>CRUD × 3 库</td></tr><tr><td>边界鲁棒性</td><td>10</td><td>空/零/超大值</td></tr></tbody></table>
-<hr/>
-<blockquote>本文档基于 activity-duration-estimation v1.11.0 的 SKILL.md + references/*.md + 核心脚本综合分析整理。</blockquote>
 <h1 id="h140">04｜RAG Assistant 架构文档</h1>
 <h2 id="h141">一、系统概览</h2>
 <p>RAG Assistant 是一个<strong>本地知识库问答智能体</strong>，基于 local-rag-builder 技能构建，核心理念是从传统单轮问答升级为 <strong>LLM 驱动的组合式检索</strong> + <strong>用户画像自适应交互</strong>：</p>
@@ -1031,7 +1001,6 @@ Phase 6: docs       — 项目文档生成（混合模式概率最大）</code><
 </div>
 <p>v1.7.0b1 核心改进：</p>
 <ul><li>四分法从"采样 4 份合 1 质心"改为"4 份各自算质心、各取 20 近邻"</li><li>签名上限从 12 词扩至 80 词（不强求，取实际值）</li><li>签名同时保存多段子签名（<code>signatures</code> 列表），路由时逐个 cosine 取最高分</li><li>反哺从全局排序改为四象限均分：<code>(30 - originals) // 4</code></li><li>停用词扩展 8 个 PDF 分页残留词：接上、转下页、上一页、下一页、上页、下页、翻页、第几页</li></ul>
-<hr/>
 <h2 id="h145">二、三层架构</h2>
 <table><thead><tr><th>层</th><th>组件</th><th>职责</th></tr></thead><tbody><tr><td><strong>表现层</strong></td><td><code>web_ui.py</code> (port 8765) / RAG 配置页 subprocess (port 8766) / CLI (stdin)</td><td>Web 界面、LLM 配置面板、聊天界面、模型管理、知识库配置、CLI 交互</td></tr><tr><td><strong>业务层</strong></td><td><code>agent.py</code> / <code>rag_wrapper.py</code> / <code>engine/rag_core.py</code> / <code>engine/router.py</code> / <code>engine/reranker.py</code></td><td>决策循环、组合查询、路由/检索/重排序/NLI、记忆管理、用户画像</td></tr><tr><td><strong>基础设施</strong></td><td><code>llm_client.py</code> / <code>engine/config.py</code> / <code>engine/utils.py</code> / <code>data/</code> / <code>vendor/</code></td><td>LLM 通信、配置管理、数据持久化、内嵌第三方依赖</td></tr></tbody></table>
 <h3 id="h146">2.1 完整文件结构</h3>
@@ -1043,7 +1012,6 @@ Phase 6: docs       — 项目文档生成（混合模式概率最大）</code><
 <div class="flow-treegroup lv2" style="margin-left:14px"><div class="flow-tree-row lv2"><span class="flow-tmark">├─</span>vendor/                          # ★ 内嵌第三方库（零 pip 也可在受限环境中运行）</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>bs4/                         # BeautifulSoup4</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>pypdfium2/                   # PDF 解析（Google PDFium 引擎，v2.4.0 替换 pypdf）</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>pypdfium2_raw/               # PDFium 预编译二进制（含 pdfium.dll）</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>pypdfium2_cfg/               # pypdfium2 配置</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>markdownify/                 # HTML <span class="flow-inline-arrow">→</span> <span class="edge-fall">Markdown</span></div><div class="flow-tree-row lv3"><span class="flow-tmark">│   └─</span>soupsieve/                   # CSS 选择器（bs4 依赖）</div></div>
 <div class="flow-treegroup lv2" style="margin-left:14px"><div class="flow-tree-row lv2"><span class="flow-tmark">└─</span>data/                            # 运行时数据</div><div class="flow-tree-row lv3"><span class="flow-tmark">├─</span>config/rag_config.json       # 引擎全量配置（含 llm 子字典、prompt_slots 等）</div><div class="flow-tree-row lv3"><span class="flow-tmark">├─</span>kb/</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   ├─</span>kb_index.json            # 知识库索引</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   ├─</span>kb_signatures.json       # KB 签名关键词</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   ├─</span>auto_classify_rules.json # 自动分类规则</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   └─</span>{name}/                  # 各知识库（13 个，ChromaDB SQLite + HNSW）</div><div class="flow-tree-row lv3"><span class="flow-tmark">├─</span>models/</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   └─</span>model_index.json         # 模型索引</div><div class="flow-tree-row lv3"><span class="flow-tmark">├─</span>config/rag_config.json       # LLM 与检索配置</div><div class="flow-tree-row lv3"><span class="flow-tmark">├─</span>memory/</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   ├─</span>compressed_{id}.txt      # LLM 压缩摘要</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   ├─</span>kb_gaps.json             # 知识缺口（最多 200 条）</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   └─</span>user_habits.json         # 用户习惯 + OCEAN 人格画像</div><div class="flow-tree-row lv3"><span class="flow-tmark">├─</span>sessions/{id}.txt            # 短期对话</div><div class="flow-tree-row lv3"><span class="flow-tmark">├─</span>prompts/</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   ├─</span>custom_presets.json      # 用户自定义 prompt 预设</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   └─</span>custom_prompt_template.txt</div><div class="flow-tree-row lv3"><span class="flow-tmark">├─</span>import_manifest.json         # 待入库文件清单</div><div class="flow-tree-row lv3"><span class="flow-tmark">├─</span>imports/                     # 浏览器上传临时目录（入库后自动清理）</div><div class="flow-tree-row lv3"><span class="flow-tmark">└─</span>cache/                       # 模型下载临时缓存</div></div>
 </div>
-<hr/>
 <h2 id="h147">三、组件详解</h2>
 <h3 id="h148">3.1 决策循环 — <code>agent.py</code></h3>
 <p>核心是 <code>_decide_with_retry()</code> 方法，实现 <strong>LLM 决策 → 解析 → 校验 → 自修正</strong> 闭环。 第一轮决策（<code>_build_first_pass_messages</code>）<strong>不传完整历史对话</strong>，仅传压缩摘要作为 system context，避免上一轮查询 entities 泄漏到当前决策：</p>
@@ -1139,7 +1107,6 @@ slices = [
 <p>v0.9.0 新增，cross-encoder 3-class 模型（contradiction / neutral / entailment）。</p>
 <table><thead><tr><th>模型</th><th>语言</th></tr></thead><tbody><tr><td><code>cross-encoder/nli-deberta-v3-base</code></td><td>英文（SOTA）</td></tr><tr><td><code>MoritzLaurer/mDeBERTa-v3-base-xnli</code></td><td>多语言 XNLI</td></tr><tr><td><code>MoritzLaurer/mDeBERTa-v3-base-mnli-xnli</code></td><td>多语言（双源训练）</td></tr><tr><td><code>BAAI/bge-reranker-v2-minicpm-layerwise</code></td><td>多任务</td></tr><tr><td><code>cross-encoder/nli-MiniLM2-L6-H768</code></td><td>英文（轻量）</td></tr><tr><td><code>cross-encoder/nli-roberta-base</code></td><td>英文</td></tr></tbody></table>
 <p>标签输出格式：<code>[NLI: entailment, 92%]</code> 在 reranker 之后（reranker 开时）或向量召回之后（reranker 关时）运行。</p>
-<hr/>
 <h2 id="h159">四、记忆系统 — <code>memory.py</code></h2>
 <p>四层记忆 + 用户画像系统，统一管理短期对话、压缩摘要、知识缺口和用户习惯性格画像。</p>
 <h3 id="h160">4.1 短期记忆</h3>
@@ -1187,7 +1154,6 @@ record_habit(message, is_rag, ..., kb)   # 记录习惯 + 语言分析 + OCEAN �
 record_gap(query, kb)                    # 记录知识缺口</code></pre>
 <p><strong>历史隔离</strong>（v0.8.0）：第一轮决策不传完整历史对话，仅传压缩摘要作为 system context。第二轮 <code>_second_pass()</code> 仍携带带 <code>[历史对话]</code> 前缀的历史消息，保证跨轮追问的上下文连贯性。</p>
 <p><strong>ACTION 剥离</strong>（v0.8.0）：写入记忆时自动使用 <code>re.sub(r'<{1,2}\s*ACTION\s+.*?>{1,2}', '', content, flags=re.DOTALL|re.IGNORECASE)</code> 剥离内部指令标签。</p>
-<hr/>
 <h2 id="h165">五、外部接口</h2>
 <h3 id="h166">5.1 Python 编程接口（API）</h3>
 <table><thead><tr><th>类</th><th>入口方法</th><th>返回格式</th></tr></thead><tbody><tr><td><code>Agent</code></td><td><code>.chat(message) → dict</code></td><td><code>{"text", "success", "reasoning", "kb", ...}</code></td></tr><tr><td></td><td><code>.reset_session()</code></td><td>无返回值</td></tr><tr><td><code>Memory</code></td><td><code>.get_short_term(id) → str</code></td><td>对话历史文本</td></tr><tr><td></td><td><code>.append_short_term(id, role, content)</code></td><td>无返回值</td></tr><tr><td></td><td><code>.get_gaps(min_count) → list[dict]</code></td><td><code>[{"query", "kb", "count", ...}]</code></td></tr><tr><td></td><td><code>.get_habits() → dict</code></td><td><code>{"total_queries", "chat_ratio", "personality", ...}</code></td></tr><tr><td></td><td><code>.get_persona() → dict</code></td><td><code>{"linguistic_summary", "personality", "behavior"}</code></td></tr><tr><td><code>LLMClient</code></td><td><code>.chat(messages) → dict</code></td><td><code>{"text", "reasoning", "raw"}</code></td></tr><tr><td></td><td><code>.list_models() → list[str]</code></td><td>模型名列表</td></tr><tr><td></td><td><code>.check_health() → bool</code></td><td>连接状态</td></tr><tr><td><code>RAGWrapper</code></td><td><code>.query(question, kb_name) → dict</code></td><td><code>{"context", "docs", "kb", "has_context"}</code></td></tr><tr><td></td><td><code>.import_file(path, kb_name) → dict</code></td><td><code>{"success", "doc_count", "kb"}</code></td></tr><tr><td></td><td><code>.import_text(text, kb_name, title) → dict</code></td><td><code>{"success", "doc_count", "kb"}</code></td></tr><tr><td></td><td><code>.list_kbs() → dict</code></td><td>知识库字典</td></tr><tr><td><code>WebSearch</code></td><td><code>.search(query, max_results) → dict</code></td><td><code>{"results": [{"title", "url", "snippet"}], "success"}</code></td></tr></tbody></table>
@@ -1205,7 +1171,6 @@ record_gap(query, kb)                    # 记录知识缺口</code></pre>
 <p>系统提示词框架锁定不可改，暴露 3 个插槽由用户配置：</p>
 <table><thead><tr><th>插槽</th><th>默认值</th><th>作用</th></tr></thead><tbody><tr><td><code>cite_format</code></td><td>"每个结论后面用 [n] 标注来源的段落编号"</td><td>控制引用标注格式</td></tr><tr><td><code>output_style</code></td><td>"用 Markdown 格式输出"</td><td>控制输出风格 / 格式</td></tr><tr><td><code>fallback</code></td><td>"如果资料中没有明确结论，可以结合资料进行分析推理，但不能编造不存在的内容"</td><td>控制无资料时的处理策略</td></tr></tbody></table>
 <p><strong>预设管理</strong>：4 个内置预设（标准模式 / 深度分析 / 对比分析 / 友好对话）+ 用户自定义预设 CRUD。RAG 配置页 UI 中以下拉 <code><optgroup></code> 分区显示，内置预设不可删除。</p>
-<hr/>
 <h2 id="h170">六、流程详解</h2>
 <h3 id="h171">6.1 完整请求生命周期</h3>
 <div class="flow">
@@ -1364,7 +1329,6 @@ data/plugins/                       ← 运行时数据目录
 </div>
 <p><strong>配置项（<code>llm_config.json</code>）：</strong></p>
 <p>插件生成调用与主智能体共享 LLM 配置（model / max_tokens / timeout），仅 <code>temperature=0.3</code> 固定用于代码生成确定性。</p>
-<hr/>
 <h2 id="h177">七、部署与启动流程</h2>
 <h3 id="h178">7.1 启动模式</h3>
 <table><thead><tr><th>模式</th><th>命令</th><th>说明</th></tr></thead><tbody><tr><td>Web 界面</td><td><code>python main.py</code></td><td>默认 port 8765，自动分配 RAG 配置子进程端口</td></tr><tr><td>CLI 对话</td><td><code>python main.py --no-web</code></td><td>stdin 交互，支持 <code>/reset</code> 指令</td></tr><tr><td>批量处理</td><td><code>python main.py --batch --input q.json --output r.json</code></td><td>结构化输入输出</td></tr><tr><td>管道 JSONL</td><td>`cat queries.jsonl \</td><td>python main.py --jsonl`</td><td>逐行处理</td></tr><tr><td>数据迁移</td><td><code>python main.py migrate</code></td><td>从 local-rag-builder 技能迁移知识库/模型</td></tr></tbody></table>
@@ -1385,7 +1349,6 @@ data/plugins/                       ← 运行时数据目录
 <table><thead><tr><th>参数</th><th>类型</th><th>默认</th><th>说明</th></tr></thead><tbody><tr><td><code>--port</code></td><td>int</td><td>8765</td><td>Web 端口</td></tr><tr><td><code>--host</code></td><td>string</td><td>0.0.0.0</td><td>监听地址</td></tr><tr><td><code>--data-dir</code></td><td>string</td><td><code>./data</code></td><td>数据目录</td></tr><tr><td><code>--config</code></td><td>string</td><td>—</td><td>覆盖配置文件</td></tr><tr><td><code>--no-web</code></td><td>flag</td><td>false</td><td>CLI 对话模式</td></tr><tr><td><code>--batch</code></td><td>flag</td><td>false</td><td>批量处理模式</td></tr><tr><td><code>--input</code></td><td>string</td><td>—</td><td>JSON 输入文件</td></tr><tr><td><code>--output</code></td><td>string</td><td>—</td><td>JSON 输出文件</td></tr><tr><td><code>--jsonl</code></td><td>flag</td><td>false</td><td>管道 JSONL 模式</td></tr><tr><td><code>--pidfile</code></td><td>string</td><td>—</td><td>PID 文件路径</td></tr><tr><td><code>migrate</code></td><td>subcommand</td><td>—</td><td>数据迁移</td></tr></tbody></table>
 <h3 id="h182">7.5 退出码</h3>
 <table><thead><tr><th>退出码</th><th>含义</th></tr></thead><tbody><tr><td>0</td><td>全部成功</td></tr><tr><td>1</td><td>部分失败</td></tr><tr><td>2</td><td>严重错误</td></tr></tbody></table>
-<hr/>
 <h2 id="h183">八、依赖与存储</h2>
 <h3 id="h184">8.1 Python 包依赖</h3>
 <pre><code>langchain&gt;=0.1                    # LangChain 框架
@@ -1411,10 +1374,8 @@ numpy&gt;=1.24                       # 向量余弦相似度计算</code></pre>
 <ul><li><strong>配置文件</strong>：<code>data/config/rag_config.json</code></li><li><strong>默认配置</strong>：在 <code>engine/config.py</code> 的 <code>DEFAULT_CONFIG</code> 中硬编码</li><li><strong>配置加载顺序</strong>：</li></ul>
 <ol><li><code>DEFAULT_CONFIG</code> 默认值</li><li><code>rag_config.json</code> 实际值（合并到默认上）</li><li>旧版 LLM key 自动迁移到 <code>llm</code> 子字典</li><li>模型路径自动修正（失效路径 → 第一个已下载的同类型模型）</li></ol>
 <ul><li><strong>极客模式</strong>（v0.8.3）：8 区块分区编辑（Prompt / 嵌入模型&amp;检索 / 重排序 / 切片 / 路由层 / 知识库 / LLM / 其他）</li></ul>
-<hr/>
 <h2 id="h188">九、安全与隐私</h2>
 <ul><li><strong>无外部调用</strong>：所有 LLM 请求发向本地 LM Studio / Ollama，不上传数据</li><li><strong>本地知识库</strong>：ChromaDB 向量库存储在本地 <code>data/kb/</code>，不离开用户机器</li><li><strong>联网搜索可选</strong>：默认关闭，需用户手动启用</li><li><strong>模型本地加载</strong>：所有模型（嵌入/路由/reranker/NLI）通过本地磁盘加载，<code>local_files_only=True</code></li><li><strong>自包含 vendor</strong>：<code>vendor/</code> 嵌入 bs4 / pypdfium2 / markdownify 等第三方库，零外部 pip 安装也可运行</li></ul>
-<hr/>
 <h2 id="h189">十、版本演进要点</h2>
 <table><thead><tr><th>版本</th><th>新增/变更要点</th></tr></thead><tbody><tr><td>v2.1.0b2</td><td>AI 插件生成器（二阶段 LLM + 7 阶段校验管道）；web_llm 多 profile 配置系统；setup.bat HNSW 修复</td></tr><tr><td>v2.1.0b1</td><td>智能体插件系统（PluginBase + PluginManager + 5 道防线）；内置联网搜索插件；插件 Web UI 管理面板</td></tr><tr><td>v2.0.0b1</td><td>1.x → 2.x HNSW 索引引擎更换；Chroma 适配器重构；setup.bat 全量重建提示</td></tr><tr><td>v1.8.0</td><td>外部 API 端口独立（8767）；引擎独立化（engine/ 副本自包含）</td></tr><tr><td>v1.7.0</td><td>PROTOCOL 协议升级；KB 签名多向量路由</td></tr><tr><td>v2.4.1</td><td>版本号重发（2.4.0 内容）</td></tr><tr><td>v2.4.0</td><td>PDF 引擎迁移 pypdf → pypdfium2；乱码三层检测（二进制类型/信号2词间距/信号4常用字覆盖）；vendor 替换</td></tr><tr><td>v2.3.0</td><td>top-N 多 KB 路由（router.top_n/classify_threshold）；外部 API top_n 参数；死代码清理（FallbackRouter）</td></tr><tr><td>v1.5.0b1</td><td>Web 配置页面内嵌（iframe 模式）；双端口架构</td></tr><tr><td>v1.3.0-beta</td><td>双面板 Web UI（配置 + 对话）</td></tr><tr><td>v1.2.0</td><td>组合检索（LLM 分词 + entities × attrs 穷举展开）</td></tr><tr><td>v1.1.0</td><td>四层记忆系统（短时/压缩/习惯/缺口）</td></tr><tr><td>v1.0.0</td><td>从 local-rag-builder 仓库外项目独立为正式版</td></tr><tr><td>v0.9.5</td><td>README 架构图补 NLI；NLI 模型探测遍历所有源修复</td></tr><tr><td>v0.9.0</td><td>NLI 三向分类器；网络探测并行化；Config 自动修正模型路径；组合查询两两配对 + 中文逗号</td></tr><tr><td>v0.8.0</td><td>KB 暂停写入；历史对话隔离；引用校验；OCR 触发条件修复</td></tr><tr><td>v0.7.0</td><td>KB 签名新流程（BCE→jieba→停用词→BCE排序）；精排/路由解耦；ChromaDB 容灾</td></tr><tr><td>v0.6.0</td><td>用户习惯画像系统（OCEAN + 语言分析）；Prompt 自定义预设</td></tr><tr><td>v0.5.0</td><td>出库路由彻底弃用 reranker，改用嵌入模型余弦相似度；KB 签名反哺</td></tr><tr><td>v0.4.0</td><td>入库路由独立（kb.auto_classify）；多知识库主开关（kb.enabled）</td></tr><tr><td>v0.3.0</td><td>ChromaDB 崩溃修复；状态机解析器重写；MANIFEST 批量导入</td></tr><tr><td>v0.2.0</td><td>PROTOCOL.md；llms.txt；--batch / --jsonl 模式</td></tr><tr><td>v0.1.0</td><td>从 local-rag-builder v1.5.0 抽取为独立智能体</td></tr></tbody></table>
 <h1 id="h190">05｜Structured Writer 架构文档</h1>
@@ -1445,12 +1406,10 @@ numpy&gt;=1.24                       # 向量余弦相似度计算</code></pre>
 </div>
 <h3 id="h192">1.1 核心设计原则</h3>
 <table><thead><tr><th>原则</th><th>说明</th></tr></thead><tbody><tr><td><strong>模板 > 空白</strong></td><td>文章结构由模板定义（meta+content），LLM 和用户都在模板确定的边界内操作</td></tr><tr><td><strong>子结构 > 整段</strong></td><td>节拆分为 2-4 个子结构逐段写作，每段独立调 LLM，避免长上下文注意力衰减</td></tr><tr><td><strong>材料分级 > 一股脑</strong></td><td>节级 RAG 提供背景上下文，子结构级 RAG 提供针对性素材，文档元数据全局共享</td></tr><tr><td><strong>引用后处理 > LLM 格式</strong></td><td>LLM 写自然语言标记（引用自{文件名}），确定性代码替换为编号 [N] 并生成参考文献</td></tr><tr><td><strong>续写 > 截断</strong></td><td>token 耗尽时不丢弃已写内容，自动续写最多 5 轮</td></tr><tr><td><strong>可配置 > 黑盒</strong></td><td>模板所有字段可编辑，大纲所有字段均可交互调整</td></tr><tr><td><strong>容错 > 崩溃</strong></td><td>RAG 超时不塞 prompt，空内容跳过，写作者异常降级为错误提示</td></tr><tr><td><strong>状态持久 > 内存</strong></td><td>进度写入 state_manager，断线重连可恢复</td></tr><tr><td><strong>文件真相源 > session 状态</strong></td><td>章级/段级续写跳过判定以磁盘文件为准，防 session 与磁盘分叉重复重写</td></tr><tr><td><strong>跳过 = 通过</strong></td><td>修复弹窗：勾选=重构，不勾选/全部跳过=立即标记通过（不再重检）</td></tr><tr><td><strong>全文三检只检全文</strong></td><td>全文三检仅在全书所有章 done 后触发一次（"if 规划 else 全文三检"）</td></tr></tbody></table>
-<hr/>
 <h2 id="h193">二、后端架构（v3.1.0b1 定稿：LM Studio 统一管理）</h2>
 <blockquote><strong>历史决策</strong>：v3.1.0b1 起 <strong>llama.cpp 直挂后端整体废弃</strong>——llama-cpp-python 0.3.34 旧内核无新 MoE 优化，35B 写作仅 8 t/s vs LM Studio 20+ t/s。llm_client.py 删除全部 llama.cpp 分支，保留纯 HTTP 客户端。</blockquote>
 <table><thead><tr><th>角色</th><th>模型</th><th>后端</th><th>生命周期</th></tr></thead><tbody><tr><td>写作/规划（35B）</td><td>qwen/qwen3.6-35b-a3b</td><td><strong>LM Studio</strong>（lms load → GPU → HTTP localhost:1234）</td><td>任务内复用，任务结束自动卸载</td></tr><tr><td>判定 4维（8B）</td><td>qwen3-8b</td><td>LM Studio（统一管理勾选）/ transformers 3B（不勾）</td><td>章检测完即卸（lms unload）</td></tr><tr><td>判定 R1（7B）</td><td>deepseek-r1-distill-qwen-7b</td><td>同上</td><td>同上</td></tr><tr><td>实体/行为/时间线提取（3B）</td><td>Qwen2.5-3B</td><td><strong>永远 transformers（CPU）</strong></td><td>常驻复用</td></tr><tr><td>通用线写作</td><td>用户配置（LM Studio/Ollama）</td><td>HTTP（1234 / 11434）</td><td>会话内</td></tr></tbody></table>
 <ul><li><strong>统一管理勾选</strong>：planner/writer 后端都是 LM Studio 时可勾选 → 判定 8B/7B 走 LM Studio GPU；不勾 → transformers 3B/1.5B</li><li><strong>ollama 场景</strong>：写作后端为 Ollama 时统一管理禁用（判定模型仍是 LM Studio/transformers）</li><li><strong>LM Studio 生命周期</strong>：<code>novel/lmstudio_probe.py</code> 封装 lms.exe（load/unload/ps/import/server start）；判定模型用 <code>make_lms_handle</code>（带 <code>_lms_model_key</code> 标记）→ <code>release</code> 识别 lms 句柄 → lms unload</li><li><strong>模型管理</strong>：8B/7B GGUF 位于 LM Studio 模型库 <code>~/.lmstudio/models/</code>（本地移入或自动下载 + lms import）；<code>judge_model_keys</code> 从 lms ls 解析（支持裸名 key 与 user/repo 形态）</li><li><strong>窗口</strong>：判定模型固定 16384（R1 思考链+JSON ≈13K）；8B 判定带 <code>/no_think</code> 关思考（LM Studio 分离 reasoning_content 字段）</li></ul>
-<hr/>
 <h2 id="h194">三、三层架构</h2>
 <table><thead><tr><th>层</th><th>组件</th><th>职责</th></tr></thead><tbody><tr><td><strong>表现层</strong></td><td><code>web_ui.py</code> (port 8770) / 配置 Tab / 对话 Tab</td><td>Web 界面、LLM 配置面板、模板编辑器、大纲交互、小说质检配置、修复面板、进度展示</td></tr><tr><td><strong>业务层</strong></td><td><code>planner.py</code> / <code>writer.py</code> / <code>rag_client.py</code> / <code>llm_client.py</code> / <code>state_manager.py</code> / <code>citation_validator.py</code> + <code>novel/*</code> 子包</td><td>通用线（大纲规划、逐段写作、RAG、LLM、状态、引用）+ 小说线（规划/写作/章检/全文三检/修复）</td></tr><tr><td><strong>基础设施</strong></td><td><code>config_manager.py</code> / <code>main.py</code> / <code>data/</code> / <code>setup.bat</code></td><td>配置读写、服务入口、数据持久化、一键启动</td></tr></tbody></table>
 <h3 id="h195">3.1 完整文件结构</h3>
@@ -1460,7 +1419,6 @@ numpy&gt;=1.24                       # 向量余弦相似度计算</code></pre>
 <div class="flow-treegroup lv2" style="margin-left:14px"><div class="flow-tree-row lv2"><span class="flow-tmark">├─</span>structured_writer/                 # ★ 智能体核心包（PyPI 包名 structured-writer-ldxs）</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>__init__.py                    # 版本号唯一源（3.1.0b5）</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>web_ui.py                      # HTTP 服务器 + 前端（~7000 行，11 个 /api/novel/* 端点）</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>planner.py                     # 通用线大纲规划器（LLM 生成 JSON 大纲）</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>writer.py                      # 通用线串行写作器（两级 RAG + 续写 + 引用后处理）</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>rag_client.py                  # RAG 客户端（调 rag-assistant :8767）</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>llm_client.py                  # LLM 统一客户端（纯 HTTP：LM Studio / Ollama）</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>state_manager.py               # 会话状态管理 + 修复提示（_repair_hints + repair_pending）</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>citation_validator.py          # 引用验证（扫描+报告）</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>config_manager.py              # 配置读写 + 模板分离存储 + 旧格式迁移</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>external_api.py                # 对外写作 API（/api/write，8777 独立端口）</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>aux_parser.py                  # 辅助解析</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>md2tex.py                      # md <span class="flow-inline-arrow">→</span> <span class="edge-fall">tex + xelatex 编译</span></div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>novel/                         # ★ 小说模式子包</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   │   ├─</span>novel_bridge.py            # 场景配置 <span class="flow-inline-arrow">→</span> <span class="edge-fall">章数组<span class="flow-inline-arrow">→</span>因果链<span class="flow-inline-arrow">→</span>outline<span class="flow-inline-arrow">→</span>项目初始化<span class="flow-inline-arrow">→</span>plan-chapter</span></div><div class="flow-tree-row lv4"><span class="flow-tmark">│   │   ├─</span>novel_writer.py            # 小说写作引擎（逐章 plan-chapter + 写作 + 章检门控 + 全文三检触发）</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   │   ├─</span>novel_workflow_engine.py   # 章检/全文三检编排（子进程 finalize-chapter/finalize-novel）</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   │   ├─</span>novel_repair_engine.py     # 修复引擎（T0 自动修/T1 重构、轮次、三检当场重检）</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   │   ├─</span>novel_4dim_check.py        # 章检 4 维判定（时间/情绪/话题/角色，8B 或 3B）</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   │   ├─</span>novel_reasoning_check.py   # 推理审核 R1（7B，5 维）</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   │   ├─</span>novel_fidelity.py          # 大纲忠实度检查（全文三检）</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   │   ├─</span>novel_pledge_check.py      # 全文承诺检查（全文三检）</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   │   ├─</span>novel_logic_check.py       # 逻辑检查（4维 回退链）</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   │   ├─</span>novel_entity_extractor.py  # 实体提取（3B + 正则兜底）</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   │   ├─</span>novel_behavior_extractor.py# 行为提取（3B + 正则兜底）</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   │   ├─</span>novel_timeline*.py         # 时间线提取（3B + 正则兜底，day 累计解析）</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   │   ├─</span>novel_state_manager.py     # novel_state.json 读写</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   │   ├─</span>novel_atomic_writer.py     # 原子写入 + 末行标记</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   │   ├─</span>novel_character_registry.py# 角色注册表（name+aliases，占位符挡截）</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   │   ├─</span>novel_continuity.py        # 规则连通性检查（4维 回退）</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   │   ├─</span>novel_style_check.py       # 风格检查</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   │   ├─</span>model_backend.py           # 判定模型后端路由（LM Studio / transformers）+ _model_profile</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   │   ├─</span>lmstudio_probe.py          # LM Studio 环境探查 + lms 生命周期封装</div><div class="flow-tree-row lv4"><span class="flow-tmark">│   │   └─</span>model_env_check.py         # 环境探测（transformers/torch 缺失自动安装）</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   └─</span>plugins/                       # 数据源插件系统</div><div class="flow-tree-row lv4"><span class="flow-tmark">│       ├─</span>base.py / manager.py</div><div class="flow-tree-row lv4"><span class="flow-tmark">│       └─</span>builtin/db_source/         # 数据库数据源插件（SQLite/MySQL/PG/CSV）</div></div>
 <div class="flow-treegroup lv2" style="margin-left:14px"><div class="flow-tree-row lv2"><span class="flow-tmark">└─</span>data/                              # 运行时数据（不出库）</div><div class="flow-tree-row lv3"><span class="flow-tmark">├─</span>config.json                    # 运行时配置</div><div class="flow-tree-row lv3"><span class="flow-tmark">├─</span>sessions/{id}.json             # 对话状态</div><div class="flow-tree-row lv3"><span class="flow-tmark">├─</span>archives/sessions/             # 归档会话</div><div class="flow-tree-row lv3"><span class="flow-tmark">├─</span>outputs/{name}_{ts}/           # 生成结果（md + 图片集）</div><div class="flow-tree-row lv3"><span class="flow-tmark">├─</span>templates/user_templates.json  # 用户自定义模板（内置模板在代码中）</div><div class="flow-tree-row lv3"><span class="flow-tmark">├─</span>examples/examples.json         # 快速范例</div><div class="flow-tree-row lv3"><span class="flow-tmark">├─</span>novel/projects/{id}/           # 小说项目（data/novel_state.json + chapters/<章>/*.txt）</div><div class="flow-tree-row lv3"><span class="flow-tmark">└─</span>models/                        # transformers 模型（Qwen2.5-3B / R1-1.5B 等）</div></div>
 </div>
-<hr/>
 <h2 id="h196">四、模板系统</h2>
 <h3 id="h197">4.1 模板结构</h3>
 <p>每个模板由四个部分组成（小说模板额外带 <code>novel</code> 标记）：</p>
@@ -1483,7 +1441,6 @@ numpy&gt;=1.24                       # 向量余弦相似度计算</code></pre>
 <p>content 字段支持 <code>citation_check</code> 和 <code>citation_format</code> 配置（<code>[x]=1.</code> 格式：<code>=</code> 前为行内标记模板，后为参考文献列表前缀）。字段名含"参考文献"或"引用"时 <code>_normalize_template()</code> 自动设 <code>citation_check=true</code>。</p>
 <h3 id="h200">4.4 模板生成（对话生成）</h3>
 <p><code>POST /api/gen-template</code> → LLM 生成模板 → 多级 JSON 容错解析（最多重试 3 次）→ <code>_normalize_template()</code> 校验补默认值 → 存用户模板。</p>
-<hr/>
 <h2 id="h201">五、组件详解</h2>
 <h3 id="h202">5.1 通用线大纲规划器 — <code>planner.py</code></h3>
 <p><code>plan_outline()</code> 调用 LLM 根据模板的 meta+content 生成结构化 JSON 大纲。<code>parse_outline()</code> 4 种解析策略（直接 json.loads / ``<code>json 提取 / </code>`<code> 提取 / 首 </code>{` 截取），失败追加纠正指令重试（最多 3 次）。子结构规范化：leaf 不补、section 自动补默认子结构、补全 id/summary/word_count/_checked/_logical_order。</p>
@@ -1524,7 +1481,6 @@ numpy&gt;=1.24                       # 向量余弦相似度计算</code></pre>
 <ul><li><code>save_repair_hint(chapter, result)</code>：覆盖时<strong>保留已有 <code>_repaired</code></strong>（防跳过被章检覆盖又弹）</li><li><code>get_progress()</code> 的 <code>repair_pending</code>：章检 issues HARD/FAIL 或三检 full_items 非空且未 <code>_repaired</code> → 覆盖式最近章</li></ul>
 <h3 id="h212">5.10 配置管理器 — <code>config_manager.py</code></h3>
 <ul><li>config.json 原子写入（tmp → replace），深层合并默认值</li><li>planner/writer 模型配置：<strong>profiles 分槽结构</strong> <code>{backend, profiles: {lmstudio, ollama}}</code>（v3.1.0b1 移除 llama.cpp profile，v3.0.0b37 引入分槽，前端切后端自动恢复对应槽）</li><li>内置模板 <code>DEFAULT_TEMPLATES</code> + 用户模板 <code>data/templates/user_templates.json</code></li><li>旧格式迁移 <code>_migrate_old_templates()</code></li></ul>
-<hr/>
 <h2 id="h213">六、外部接口</h2>
 <h3 id="h214">6.1 HTTP 端点（Web UI，8770）</h3>
 <p><strong>通用线：</strong></p>
@@ -1549,7 +1505,6 @@ numpy&gt;=1.24                       # 向量余弦相似度计算</code></pre>
                    &quot;unified_management&quot;: true}
 }</code></pre>
 <ul><li>模型配置为 <strong>profiles 分槽</strong>：切后端（lmstudio/ollama）自动恢复对应落盘配置（地址/模型/参数互不覆盖）</li><li>小说质检配置存 <code>novel_checks</code>（章内 4维/格式/推理 R1 + 全文三检三开关 + 自动修复/轮次 + 统一管理）</li></ul>
-<hr/>
 <h2 id="h217">七、UI 布局</h2>
 <p>对话界面为三栏布局（会话管理 / 对话交互 / 已完成文章）。配置 Tab 含：模型配置（后端下拉 LM Studio/Ollama + 地址 + 模型列表）、模板管理、RAG 配置、写作参数、<strong>小说质检区</strong>（章内检测/全文检测分组 + 点位标注 + 统一管理勾选 + 检测模型按钮）。</p>
 <h3 id="h218">7.1 小说确认面板</h3>
@@ -1567,7 +1522,6 @@ numpy&gt;=1.24                       # 向量余弦相似度计算</code></pre>
 </div>
 </div>
 <ul><li>T0 自动修不弹窗；T1/三检进弹窗；跳过=通过（不再弹）</li><li>手动模式无上限（修复→自动重检→刷新面板）；自动模式有轮次上限</li></ul>
-<hr/>
 <h2 id="h220">八、写作管线</h2>
 <h3 id="h221">8.1 通用线完整请求生命周期</h3>
 <div class="flow">
@@ -1592,10 +1546,8 @@ numpy&gt;=1.24                       # 向量余弦相似度计算</code></pre>
 <div class="flow-arrow">↓</div>
 <div class="flow-step lv1" style="margin-left:0px">三检修复弹窗（勾选修复当场重检 / 全部跳过） <span class="flow-inline-arrow">→</span> <span class="edge-fall">处理完放行 <span class="flow-inline-arrow">→</span> 整本拼合（手动）</span></div>
 </div>
-<hr/>
 <h2 id="h223">九、版本演进要点</h2>
 <table><thead><tr><th>版本</th><th>新增/变更要点</th></tr></thead><tbody><tr><td>v3.1.0b5</td><td>8B/7B 全链路实机验证（7B 推理审核 / 8B /no_think 关思考）；纯验证无代码改动</td></tr><tr><td>v3.1.0b4</td><td>lms ls 裸名 key 过滤修复；8B/7B 移入 LM Studio 模型库（自动识别无需 import）</td></tr><tr><td>v3.1.0b3</td><td>判定窗口 UI 移除（固定 16384）；ollama 场景禁用统一管理</td></tr><tr><td>v3.1.0b2</td><td>setup.bat 去 py 3.11 优先（任意 Python 版本）</td></tr><tr><td>v3.1.0b1</td><td><strong>llama.cpp 直挂后端整体废弃 → LM Studio 统一管理</strong>（写作/规划 35B + 判定 8B/7B）；新增 lmstudio_probe.py；llm_client 删全部 llama.cpp 分支；config 移除 llama.cpp profile</td></tr><tr><td>v3.0.0b33-41</td><td>llama.cpp 推理参数优化（后被 b1 废弃）；模型配置 profiles 分槽；模型恢复修复（_modelValues 内存值）；模型列表缓存</td></tr><tr><td>v3.0.0b29-32</td><td>跳过=通过；全文三检触发守卫（if 规划 else 全文三检）</td></tr><tr><td>v3.0.0b20-28</td><td>35B 不常驻（weakref 共享）；修复引擎共享/独立/防重入/会话隔离/静默失败修复/超窗降级</td></tr><tr><td>v3.0.0b17-19</td><td>llama.cpp 实例进程级共享；判定模型弱引用（测完即卸）</td></tr><tr><td>v3.0.0b15-16</td><td>修复面板 HARD/SOFT 级别过滤</td></tr><tr><td>v3.0.0b10-14</td><td>章检 prompt 哲学（内容一致→叙事目的）；KV 量化 flash_attn；窗口动态；n_gpu_layers VMM 修复</td></tr><tr><td>v3.0.0b0</td><td>门禁体系废除；模型架构 3→2（去 bge）；全文三检全 LLM 化；三检修复弹窗复用 + 当场重检</td></tr><tr><td>v2.4.0b0</td><td>重规划全链路 UI；三层分区上下文；三提取器统一（实体/行为/时间线）</td></tr><tr><td>v2.3.x</td><td>续写文件真相源；实体清洗死循环；章检 HARD 拦截（ok→issues 判定）</td></tr><tr><td>v2.0.0b0</td><td><strong>小说模式引入</strong>（P1-P4：模板+路由 / novel 子包 / 模型层 / 检查体系）</td></tr><tr><td>v1.9.0b0</td><td>插件系统（数据源插件）；大表蓝皮书取数</td></tr><tr><td>v1.7.0</td><td>对外写作 API（8777）；md2tex/pdf；快速范例；两级局部重规划；_tmpl_key 血缘</td></tr><tr><td>v1.2.0</td><td>辅助资料（图片/文字/表格特化管线）；输出目录化</td></tr><tr><td>v1.1.0b9</td><td>模板存储分离；引用校验字段；IMRaD 内置模板；三栏布局</td></tr><tr><td>v1.0.28</td><td>事实自检内嵌标记法；temperature 可配置；RAG 停止；批量自动撰写；会话归档</td></tr><tr><td>v0.2.5b3</td><td>PyPI 发布准备：app/ → structured_writer/</td></tr><tr><td>v0.1.0</td><td>项目骨架、LLM 客户端、会话管理、大纲规划器、串行写作器</td></tr></tbody></table>
-<hr/>
 <h1 id="h224">06｜Orchestrator 架构文档</h1>
 <h2 id="h225">一、系统概览</h2>
 <p>Orchestrator 是一个<strong>链驱动技能编排器</strong>，核心理念：<strong>LLM 只做两头，中间是死的</strong>。</p>
@@ -1611,7 +1563,6 @@ numpy&gt;=1.24                       # 向量余弦相似度计算</code></pre>
 <table><thead><tr><th>原则</th><th>说明</th></tr></thead><tbody><tr><td><strong>链是主体</strong></td><td>没有链就没有对话。Pipeline 编辑器是主界面，对话区是执行结果展示</td></tr><tr><td><strong>LLM 只做两头</strong></td><td>LLM 出现在需求分析（前处理）与最终输出整理，<strong>不干预链执行</strong></td></tr><tr><td><strong>中间是死的</strong></td><td>链执行 = subprocess 真跑 skill 脚本，确定性、可复现、可审计</td></tr><tr><td><strong>skill 是原子池</strong></td><td>每个技能可拆解为可执行原子（CLI/脚本/子步骤），编排 = 挑原子组链</td></tr><tr><td><strong>编排器不替 skill 干活</strong></td><td>skill 自带领域能力（如 RAG 检索在 local-rag-builder 自己的 rag_core.py），编排器只提供通用衔接工具</td></tr><tr><td><strong>纯提示词 skill 不编排</strong></td><td>无可执行脚本入口的技能直接过滤，不进入 Pipeline 列表</td></tr><tr><td><strong>配置可调</strong></td><td>超时/max_tokens 从 settings.json 读取，非硬编码</td></tr></tbody></table>
 <h3 id="h227">1.2 与 v2.0 的关键差异</h3>
 <table><thead><tr><th>维度</th><th>v2.0（LLM 编输出）</th><th>v2.8（真执行 + LLM 两头）</th></tr></thead><tbody><tr><td><strong>执行机制</strong></td><td>每步 <code>llm.chat()</code> 编输出</td><td><strong>subprocess 真跑 skill 脚本</strong>（chain_engine <code>_run_script</code>）</td></tr><tr><td><strong>LLM 角色</strong></td><td>步骤执行器</td><td><strong>前处理 + 输出整理</strong>，中间不碰</td></tr><tr><td><strong>普通对话</strong></td><td>无链时回退 ReAct</td><td><strong>已彻底移除</strong>，无链直接拒绝</td></tr><tr><td><strong>工具</strong></td><td>7 个</td><td><strong>16 个</strong>（+文件操作 6 + 数据工具 3）</td></tr><tr><td><strong>技能过滤</strong></td><td>全部显示</td><td><strong>可执行过滤</strong>（有主脚本入口才显示，32 个）</td></tr><tr><td><strong>loop</strong></td><td>输出不回传（假循环）</td><td><strong>输出回传</strong>（每轮结果喂下一轮）</td></tr><tr><td><strong>输入通道</strong></td><td>仅文本</td><td><strong>对话框纯文本 + 上传通道</strong>（/api/upload）</td></tr><tr><td><strong>端口</strong></td><td>8765/8766</td><td><strong>8788</strong>（避 RAG 8765-8767、写作 8770/8777）</td></tr></tbody></table>
-<hr/>
 <h2 id="h228">二、双入口架构</h2>
 <pre><code>Orchestrator/
 ├── main.py                    # CLI 入口（Web UI/批处理/管道）
@@ -1646,7 +1597,6 @@ setup.bat                   # 一键启动（安装依赖 + 启动 + 自动开�
 <pre><code>python main.py --batch input.json output.json   # JSON 批处理（真执行）
 cat queries.jsonl | python main.py --jsonl       # JSONL 管道（真执行）</code></pre>
 <p>批处理/管道走 chain_engine 真执行（subprocess 跑技能脚本），LLM 不可用时降级为步骤规划输出。</p>
-<hr/>
 <h2 id="h231">三、Web UI 架构</h2>
 <h3 id="h232">3.1 HTTP 服务器</h3>
 <p>基于 Python 标准库 <code>http.server.BaseHTTPRequestHandler</code>，零外部依赖。<strong>ThreadingTCPServer + daemon_threads</strong>（单线程会阻塞全站，已修）。</p>
@@ -1674,7 +1624,6 @@ cat queries.jsonl | python main.py --jsonl       # JSONL 管道（真执行）</
 <h3 id="h235">3.4 Pipeline 编辑器</h3>
 <p>三栏布局，<strong>左侧技能列表只显示可执行技能</strong>（有主脚本入口，32 个）：</p>
 <table><thead><tr><th>操作</th><th>说明</th></tr></thead><tbody><tr><td><strong>双击左侧技能</strong></td><td>添加到画布（seq 模式）</td></tr><tr><td><strong>点 +并行组</strong></td><td>创建 par 容器（ThreadPoolExecutor 真并发）</td></tr><tr><td><strong>点 +循环组</strong></td><td>创建 loop 容器（for 真循环，输出回传）</td></tr><tr><td><strong>双击节点</strong></td><td>编辑参数（params → CLI 参数）</td></tr><tr><td><strong>右键模式切换</strong></td><td>seq/par/loop 切换</td></tr><tr><td><strong>保存</strong></td><td>模态框输入名称 → chains/{name}.json</td></tr><tr><td><strong>运行</strong></td><td>发送到后端真执行引擎</td></tr></tbody></table>
-<hr/>
 <h2 id="h236">四、执行引擎（真执行）</h2>
 <h3 id="h237">4.1 链执行（_execute_tree）</h3>
 <p>核心执行函数，支持三种模式，<strong>全部 subprocess 真执行</strong>：</p>
@@ -1714,7 +1663,6 @@ cat queries.jsonl | python main.py --jsonl       # JSONL 管道（真执行）</
 <div class="flow-step lv1" style="margin-left:0px">3. LLM 模糊回退（仅当算法无法确定时）</div>
 <div class="flow-step lv1" style="margin-left:0px">4. 里程碑自动标记</div>
 </div>
-<hr/>
 <h2 id="h240">五、数据模型</h2>
 <h3 id="h241">5.1 PipelineNode（chain_model.py）</h3>
 <pre><code>@dataclass
@@ -1734,7 +1682,6 @@ class PipelineNode:
   &quot;nodes&quot;: [...],       // 扁平化节点
   &quot;tree&quot;: [...]         // 完整树结构（含 params/extra）
 }</code></pre>
-<hr/>
 <h2 id="h243">六、LLM 客户端</h2>
 <h3 id="h244">6.1 架构</h3>
 <p>基于纯 <code>urllib</code> 的 OpenAI 兼容客户端，支持多后端：</p>
@@ -1745,12 +1692,10 @@ llm.base_url:     http://localhost:1234/v1
 llm.model_name:   qwen/qwen3.5-35b-a3b   # 配置持久化，启动不再被硬编码覆盖（v2.5.0 修复）
 llm.timeout:      1800 秒（链步执行超时）
 llm.max_tokens:   40960（每步最大输出）</code></pre>
-<hr/>
 <h2 id="h246">七、工具系统（16 个）</h2>
 <p><strong>分工原则</strong>：skill 自带领域能力（RAG 检索、颜色计算、工作日历都在 skill 自己的 scripts/ 里），编排器只提供<strong>通用衔接工具</strong>。</p>
 <table><thead><tr><th>模块</th><th>工具</th><th>用途</th></tr></thead><tbody><tr><td>file_tool.py</td><td>read_file / write_file / list_directory</td><td>基础文件读写</td></tr><tr><td>file_ops_tool.py</td><td>copy_file / move_file / delete_file / append_file / make_dir / find_files</td><td><strong>链中间产物流转</strong>（v2.3.0 新增，安全校验：空路径/系统目录/根路径拦截）</td></tr><tr><td>web_tool.py</td><td>web_fetch / web_search / python_execute</td><td>网络 + 代码执行</td></tr><tr><td>data_tool.py</td><td>db_query / read_table / image_info</td><td><strong>前处理防 token 爆炸</strong>（v2.7.0 新增：SQLite 查询写拦截/csv/xlsx 摘要/图片元数据）</td></tr><tr><td>skill_loader.py</td><td>load_skill</td><td>加载技能定义</td></tr></tbody></table>
 <p><strong>前处理阶段</strong>：LLM 通过 <code>_tools_summary</code> 注入 16 工具清单，先调工具取必要信息（不整读大文件/数据库）。</p>
-<hr/>
 <h2 id="h247">八、配置系统</h2>
 <h3 id="h248">8.1 配置文件（data/config/settings.json）</h3>
 <pre><code>{
@@ -1764,16 +1709,13 @@ llm.max_tokens:   40960（每步最大输出）</code></pre>
 <p><strong>配置持久化链路</strong>：界面保存 → 落盘 settings.json → <code>_recreate_llm</code> 联动 agent.llm → 重启后 make_llm 优先用配置值（不硬编码覆盖）。</p>
 <h3 id="h249">8.2 提示词</h3>
 <table><thead><tr><th>提示词</th><th>状态</th><th>说明</th></tr></thead><tbody><tr><td><strong>系统提示词</strong></td><td>只读</td><td><code>ORCHESTRATOR_SYSTEM_PROMPT</code>（编排器本体：LLM 只做前处理+输出整理，非聊天机器人）</td></tr><tr><td><strong>用户提示词</strong></td><td>可编辑</td><td>仅作用于前处理与输出格式，不干预 Pipeline 执行</td></tr></tbody></table>
-<hr/>
 <h2 id="h250">九、CLI 接口</h2>
 <pre><code>python main.py --web                   # Web UI（主模式，默认 8788）
 python main.py --batch in.json out.json # 批处理（真执行）
 python main.py --jsonl                  # 管道模式（真执行）
 python main.py --port 8788              # 指定端口</code></pre>
-<hr/>
 <h2 id="h251">十、演变路线</h2>
 <table><thead><tr><th>阶段</th><th>状态</th><th>内容</th></tr></thead><tbody><tr><td>v1.0-v1.2</td><td>完成</td><td>ReAct 初始架构 → Skill Pipeline 基础编排</td></tr><tr><td><strong>v2.0</strong></td><td>完成</td><td>链驱动架构重塑：Web UI / 真并行循环 / skill-sub / PROTOCOL</td></tr><tr><td>v2.1</td><td>完成</td><td>致命缺陷修复：双响应崩溃 / 假执行 / 配置加载 / CDN / 单线程</td></tr><tr><td>v2.2</td><td>完成</td><td>端口 8788 / setup.bat 重写 / 归档 tkinter</td></tr><tr><td>v2.3</td><td>完成</td><td><strong>链执行真执行化</strong>（subprocess）+ 6 文件工具 + 编排过滤</td></tr><tr><td>v2.4</td><td>完成</td><td>loop 真循环（输出回传）+ 技能入口过滤</td></tr><tr><td>v2.5</td><td>完成</td><td>配置持久化 / 会话历史 / 系统提示词真实化 / 技能 9→32</td></tr><tr><td>v2.6</td><td>完成</td><td><strong>文件上传通道</strong>（对话框纯文本 + 数据走上传）</td></tr><tr><td>v2.7</td><td>完成</td><td><strong>LLM 只做两头</strong> + 3 数据工具（防 token 爆炸）</td></tr><tr><td>v2.8</td><td>完成</td><td><strong>彻底移除普通对话</strong>，编排器定位纯化 + 文档补齐</td></tr><tr><td>v2.9+</td><td>规划</td><td>跨链状态共享、分支条件、循环变量</td></tr></tbody></table>
-<hr/>
 <h2 id="h252">十一、目录结构（agent/Orchestrator/）</h2>
 <pre><code>agent/Orchestrator/
 ├── main.py               # CLI 入口
@@ -1822,14 +1764,12 @@ python main.py --port 8788              # 指定端口</code></pre>
 <table><thead><tr><th>原则</th><th>说明</th></tr></thead><tbody><tr><td><strong>LLM 只填空不决策</strong></td><td>LLM 出现在选组合（填编号）、生成内容（填槽位/填文本），<strong>不决定流程走向</strong>。流程由 PY 确定性查表驱动</td></tr><tr><td><strong>前置规范 > 后置验证</strong></td><td>先约束再生成（14 种组合在生成前就钉死格式/值域/槽位），不是生成后检查</td></tr><tr><td><strong>PY 确定性组合</strong></td><td>每个组合骨架是 <code>生成→后处理→校验→观测</code>，PY 部分确定性查表，只有生成那步是概率的</td></tr><tr><td><strong>槽位是减法不是加法</strong></td><td>槽位定义"只准填这些"，多余 key 是编造，不是"多给了信息"</td></tr><tr><td><strong>保留聪明剥夺自由度</strong></td><td>LLM 负责填空（聪明），PY 负责约束（剥夺自由度）。两者正交不冲突</td></tr><tr><td><strong>穷举 > 猜测</strong></td><td>14 种组合在当前原子库下穷举完，不存在第 15 种。不靠 LLM 猜该用什么规范</td></tr><tr><td><strong>进度地图贯穿全局</strong></td><td>每步 LLM 都看到完整用户初始输入 + 输入分类 + 全局进度，不盲目执行</td></tr><tr><td><strong>递归自举</strong></td><td>编排器自身的前置规范也来自 14 种组合（Adapter 适配时 loop 回 Mapper 选组合）</td></tr><tr><td><strong>配置推动</strong></td><td>CLI > config.json > DEFAULT_CONFIG，max_tokens / timeout 从配置读取</td></tr></tbody></table>
 <h3 id="h256">1.2 与 Orchestrator 的关键差异</h3>
 <table><thead><tr><th>维度</th><th>Orchestrator（链驱动）</th><th>silprespec-orchestrator（前置规范编排）</th></tr></thead><tbody><tr><td><strong>核心定位</strong></td><td>技能链执行（subprocess 跑脚本）</td><td>前置规范选择+填空（LLM 填空 → 调智能体 API）</td></tr><tr><td><strong>LLM 角色</strong></td><td>前处理 + 输出整理（两头）</td><td>选组合 + 填空生成（贯穿每步，但只填空不决策）</td></tr><tr><td><strong>中间执行</strong></td><td>subprocess 真跑 skill 脚本</td><td>PY 确定性组合（exec_recipe）+ HTTP 调智能体</td></tr><tr><td><strong>规范来源</strong></td><td>用户编排 Pipeline</td><td>14 种穷举组合自动选择</td></tr><tr><td><strong>loop 语义</strong></td><td>for 真循环（次数固定）</td><td>retry loop（校验不通过则重试）+ Adapter loop（适配回 Mapper）</td></tr><tr><td><strong>端口</strong></td><td>8788</td><td>8789</td></tr></tbody></table>
-<hr/>
 <h2 id="h257">二、目录结构</h2>
 <div class="flow">
 <div class="flow-step lv1" style="margin-left:0px">silprespec-orchestrator/</div>
 <div class="flow-treegroup lv2" style="margin-left:14px"><div class="flow-tree-row lv2"><span class="flow-tmark">├─</span>main.py                               # CLI 入口（Web UI / 单次查询 / 检测）</div><div class="flow-tree-row lv2"><span class="flow-tmark">├─</span>setup.bat                             # Windows 一键启动（端口 8789）</div><div class="flow-tree-row lv2"><span class="flow-tmark">├─</span>requirements.txt                      # 依赖清单（零第三方依赖，纯标准库）</div><div class="flow-tree-row lv2"><span class="flow-tmark">├─</span>config.json                           # 配置（LLM + orchestrator + combos）</div><div class="flow-tree-row lv2"><span class="flow-tmark">├─</span>CHANGELOG.md                          # 版本更新日志</div><div class="flow-tree-row lv2"><span class="flow-tmark">├─</span>PROTOCOL.md                           # 接口契约</div><div class="flow-tree-row lv2"><span class="flow-tmark">├─</span>llms.txt                              # AI 可读项目自描述</div><div class="flow-tree-row lv2"><span class="flow-tmark">├─</span>README.md                             # 项目说明</div></div>
 <div class="flow-treegroup lv2" style="margin-left:14px"><div class="flow-tree-row lv2"><span class="flow-tmark">├─</span>silprespec_orchestrator/              # ★ 智能体核心包</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>__init__.py                       # 导出 + __version__ 唯一源（0.1.0）</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>orchestrator.py                   # 编排器主控（分类 <span class="flow-inline-arrow">→</span> <span class="edge-fall">选模式<span class="flow-inline-arrow">→</span>分解<span class="flow-inline-arrow">→</span>执行<span class="flow-inline-arrow">→</span>汇总）</span></div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>progress_map.py                   # 进度地图 + 输入分类 + 编排模式选择</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>mapper.py                         # 选组合 + 设参（LLM 填空选，PY 查表验证）</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>composer.py                       # PY 确定性组合器（调 exec_recipe）</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>executor.py                       # LLM 填空 + HTTP 调智能体 API</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>adapter.py                        # 步骤间适配（直通 or loop 回 Mapper）</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>combo_registry.py                 # 14 种穷举组合声明</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>tool_registry.py                  # ToolSpec/FieldSpec/ExampleSpec + 三智能体注册</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>atoms.py                          # 原子库（10 原子 + Recipe + exec_recipe 通用执行器）</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>pipeline_model.py                 # 数据模型（WayConfig/WayResult/5 种方式）</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>llm_client.py                     # LLM 统一客户端（LM Studio/Ollama/自定义）</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   ├─</span>web_ui.py                         # Web UI 服务器（http.server）</div><div class="flow-tree-row lv3"><span class="flow-tmark">│   └─</span>static/                           # 前端静态资源</div><div class="flow-tree-row lv4"><span class="flow-tmark">│       ├─</span>index.html                    # 四 Tab 页面（编排/组合/工具/配置）</div><div class="flow-tree-row lv4"><span class="flow-tmark">│       ├─</span>style.css                     # 样式（深色 Tab + #667eea 主色）</div><div class="flow-tree-row lv4"><span class="flow-tmark">│       └─</span>web_ui.js                     # 前端逻辑（LLM 配置 + 工具详情 + 组合展示）</div></div>
 </div>
-<hr/>
 <h2 id="h258">三、核心编排架构</h2>
 <h3 id="h259">3.1 主控流程（orchestrator.py）</h3>
 <div class="flow">
@@ -1902,7 +1842,6 @@ python main.py --port 8788              # 指定端口</code></pre>
 <div class="flow-step lv3" style="margin-left:28px">as_completed 收集结果 <span class="flow-inline-arrow">→</span> <span class="edge-fall">pm.mark_done / mark_error</span></div>
 </div>
 <p>并行步之间无前步输出传递（无 Adapter），各步独立执行后汇总。</p>
-<hr/>
 <h2 id="h262">四、三层 loop 架构</h2>
 <h3 id="h263">4.1 retry loop — exec_recipe 内部（atoms.py:576）</h3>
 <div class="flow">
@@ -1941,7 +1880,6 @@ python main.py --port 8788              # 指定端口</code></pre>
     exec_result = executor.execute(tool_name, exec_input, pm)
     prev_output = exec_result               # 输出回传下一步</code></pre>
 <p><strong>串行 loop 语义</strong>：子任务依次执行，每步输出经 Adapter 适配后传下一步。类似编程的 <code>for</code> 循环（次数固定=子任务数），轮间串行（依赖上一轮输出）。</p>
-<hr/>
 <h2 id="h266">五、前置规范 — 14 种穷举组合</h2>
 <h3 id="h267">5.1 组合分类</h3>
 <table><thead><tr><th>分类</th><th>编号</th><th>名称</th><th>PY 范式</th><th>场景</th></tr></thead><tbody><tr><td><strong>基础方式</strong></td><td>1</td><td>pure_guide</td><td>LLM生成→PY校验(约束)</td><td>开放生成、续写、摘要</td></tr><tr><td></td><td>2</td><td>diverge_correct</td><td>LLM生成→PY后处理(正则)→PY校验(纠偏目标)</td><td>创意生成、文案、扩写</td></tr><tr><td></td><td>3</td><td>deterministic_pin</td><td>LLM生成→PY后处理(钉死)→PY校验(封死目标)</td><td>格式固定、编号重排</td></tr><tr><td></td><td>4</td><td>detect_report</td><td>LLM生成→PY后处理(检出)→PY校验(有检出即成功)</td><td>数值核查、事实核查</td></tr><tr><td><strong>值域限定</strong></td><td>5</td><td>enum_select</td><td>LLM生成(选词)→PY校验(集合内)</td><td>分类、标注、情绪判断</td></tr><tr><td></td><td>6</td><td>condense_enum</td><td>LLM生成(凝练)→PY后处理(过滤)→PY校验(无编造)</td><td>标签凝练、主题提取</td></tr><tr><td></td><td>7</td><td>slot_extract</td><td>LLM生成(填槽)→PY后处理(解析)→PY校验(无多余key)</td><td>信息提取、结构化</td></tr><tr><td></td><td>8</td><td>required_min</td><td>LLM生成(填槽)→PY后处理(解析)→PY校验(必填齐全)</td><td>表单填写、必填校验</td></tr><tr><td><strong>复合后处理</strong></td><td>9</td><td>diverge_detect</td><td>LLM生成→PY后处理(纠偏+检出)→PY校验(有检出)</td><td>创意+核查</td></tr><tr><td></td><td>10</td><td>diverge_condense</td><td>LLM生成→PY后处理(纠偏+过滤)→PY校验(无编造)</td><td>创意+标签</td></tr><tr><td></td><td>11</td><td>detect_condense</td><td>LLM生成→PY后处理(检出+过滤)→PY校验(无编造)</td><td>核查+标签</td></tr><tr><td><strong>精确校验生成</strong></td><td>12</td><td>range_bound_gen</td><td>LLM生成(填槽)→PY后处理(解析)→PY校验(区间内)</td><td>数值校验、范围检查</td></tr><tr><td></td><td>13</td><td>exact_match_gen</td><td>LLM生成(填槽)→PY后处理(解析)→PY校验(精确相等)</td><td>精确提取、固定值</td></tr><tr><td></td><td>14</td><td>enum_filter_fabricate</td><td>LLM生成(选词)→PY后处理(过滤)→PY校验(无编造)</td><td>分类+防编造</td></tr></tbody></table>
@@ -1958,7 +1896,6 @@ class Recipe:
 <p>执行顺序：<code>生成 → 后处理（链式）→ 校验 → 观测</code>。PY 部分确定性查表，只有生成那步是 LLM 概率填空。</p>
 <h3 id="h269">5.3 前置规范 vs 后置验证</h3>
 <table><thead><tr><th>维度</th><th>前置规范（本系统）</th><th>后置验证（传统）</th></tr></thead><tbody><tr><td><strong>约束时机</strong></td><td>生成前钉死格式/值域/槽位</td><td>生成后检查再修</td></tr><tr><td><strong>LLM 自由度</strong></td><td>填空（槽位已定义）</td><td>自由生成后校验</td></tr><tr><td><strong>失败处理</strong></td><td>retry loop（重新填空）</td><td>后处理修复</td></tr><tr><td><strong>确定性</strong></td><td>PY 后处理 + 校验</td><td>LLM 自修复</td></tr></tbody></table>
-<hr/>
 <h2 id="h270">六、原子库（atoms.py）</h2>
 <p>复用自 silprespec-emulator，为编排器提供原子化执行能力。</p>
 <h3 id="h271">6.1 五类原子</h3>
@@ -1976,7 +1913,6 @@ class Recipe:
   for ob in recipe.observe:
     OBSERVERS[ob](ctx, wr, attempts)         # 观测
   return WayResult(filled, success, metrics)</code></pre>
-<hr/>
 <h2 id="h273">七、工具接口规范（tool_registry.py）</h2>
 <h3 id="h274">7.1 三层泛化结构</h3>
 <div class="flow">
@@ -1990,7 +1926,6 @@ class Recipe:
     required = [f.name for f in self.input_fields if f.required]
     return all(r in available_keys for r in required)</code></pre>
 <p>上一步输出的 key 包含下一步工具的所有必填字段 → 直通；否则 → Adapter loop 回 Mapper 选适配组合。</p>
-<hr/>
 <h2 id="h277">八、组件详解</h2>
 <h3 id="h278">8.1 Mapper — 选组合 + 设参（mapper.py）</h3>
 <div class="flow">
@@ -2037,7 +1972,6 @@ class Recipe:
     result = composer.compose(combo.id, prev_text, config)
     return adapted_input</code></pre>
 <p><strong>贯穿直通点</strong>：上一步输出的 key ⊇ 下一步工具必填字段时，直接传递，零 LLM 调用。否则 loop 回 Mapper 选适配组合，用 Composer 执行格式转换。</p>
-<hr/>
 <h2 id="h282">九、进度地图（progress_map.py）</h2>
 <h3 id="h283">9.1 输入分类（穷举 6 类别）</h3>
 <table><thead><tr><th>类别</th><th>说明</th></tr></thead><tbody><tr><td>extract</td><td>信息提取（实体/关系/属性）</td></tr><tr><td>generate</td><td>内容生成（文案/文章/摘要）</td></tr><tr><td>analyze</td><td>分析推理（比较/评估）</td></tr><tr><td>verify</td><td>数据核查（数值/事实/合规）</td></tr><tr><td>transform</td><td>格式转换（重构/翻译）</td></tr><tr><td>orchestrate</td><td>多步编排（复杂任务）</td></tr></tbody></table>
@@ -2053,7 +1987,6 @@ class ProgressMap:
     steps: list[StepStatus]      # 每步状态
     completed: list              # 已完成步骤</code></pre>
 <p>每步 LLM 都通过 <code>progress_map.summary()</code> 看到全局进度，不盲目执行。</p>
-<hr/>
 <h2 id="h286">十、Web UI 架构</h2>
 <h3 id="h287">10.1 HTTP 服务器</h3>
 <p>基于 Python 标准库 <code>http.server</code>，零外部依赖。端口 8789。</p>
@@ -2062,12 +1995,10 @@ class ProgressMap:
 <table><thead><tr><th>Tab</th><th>功能</th></tr></thead><tbody><tr><td><strong>编排</strong></td><td>任务输入 + 工具勾选 + 执行编排 + 结果展示</td></tr><tr><td><strong>组合</strong></td><td>14 种穷举组合表格（编号/名称/描述/方式/场景/输出限制）+ 点击查看 Recipe</td></tr><tr><td><strong>工具</strong></td><td>三智能体完整接口契约（输入字段/输出字段/引导示例/能力/局限/内部前置规范）</td></tr><tr><td><strong>配置</strong></td><td>LLM 后端选择 / 模型下拉 / 测试连接 / 超时+MaxTokens / 编排参数 / 保存配置</td></tr></tbody></table>
 <h3 id="h289">10.3 样式统一</h3>
 <p>深色 Tab 栏 <code>#2d2d44</code> + 主色 <code>#667eea</code>，与 Orchestrator/rag-assistant/structured-writer 统一。</p>
-<hr/>
 <h2 id="h290">十一、LLM 客户端（llm_client.py）</h2>
 <p>基于纯 <code>urllib</code> 的 OpenAI 兼容客户端，支持多后端：</p>
 <table><thead><tr><th>后端</th><th>地址</th><th>模型发现</th></tr></thead><tbody><tr><td>LM Studio</td><td><code>http://localhost:1234/v1</code></td><td><code>/v1/models</code></td></tr><tr><td>Ollama</td><td><code>http://localhost:11434</code></td><td><code>/api/tags</code></td></tr><tr><td>自定义</td><td>任意 OpenAI 兼容</td><td><code>/v1/models</code></td></tr></tbody></table>
 <p>统一接口：<code>chat</code> / <code>chat_detailed</code> / <code>test_connection</code> / <code>list_models</code>（30 秒缓存）。</p>
-<hr/>
 <h2 id="h291">十二、配置系统</h2>
 <h3 id="h292">12.1 配置文件（config.json）</h3>
 <pre><code>{
@@ -2102,7 +2033,6 @@ class ProgressMap:
 <div class="flow-step lv1" style="margin-left:0px"> <span class="flow-inline-arrow">→</span> <span class="edge-fall">下次启动 load_config 读取 <span class="flow-inline-arrow">→</span> make_llm 从配置构造 LLMClient</span></div>
 </div>
 <p>工具配置由 <code>tool_registry.py</code> 的 <code>_init_default_tools()</code> 硬编码注册（含完整 FieldSpec/ExampleSpec），不从 config.json 读取。</p>
-<hr/>
 <h2 id="h295">十三、CLI 接口</h2>
 <pre><code>python main.py --web                   # Web UI（主模式，默认 8789）
 python main.py --query &quot;分析这份报告&quot;   # 单次任务执行
@@ -2111,7 +2041,6 @@ python main.py --list-combos           # 列出 14 种穷举组合
 python main.py --list-tools            # 列出已注册工具
 python main.py --backend ollama        # 切换 Ollama 后端
 python main.py --port 8789             # 指定端口</code></pre>
-<hr/>
 <h2 id="h296">十四、数据流总览</h2>
 <div class="flow">
 <div class="flow-step lv1" style="margin-left:0px">用户输入 "分析茅台酒工艺并写报告"</div>

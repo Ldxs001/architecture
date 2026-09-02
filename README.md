@@ -26,7 +26,7 @@ Copyright (c) 2026 wUwproject
 
 ## 架构解析（姊妹卷）
 
-本仓库 7 篇核心架构文档已汇编为册子《**我思故我写 · 架构解析——七套核心系统的工程实现**》（arch-v1.0.0，约 3.9 万字，CC BY-SA 4.0）——母书《我思故我写》的姊妹卷：母书回答"为什么"，本册回答"怎么做"。
+本仓库 7 篇核心架构文档已汇编为册子《**我思故我写 · 架构解析——七套核心系统的工程实现**》（arch-v1.0.1，约 3.9 万字，CC BY-SA 4.0）——母书《我思故我写》的姊妹卷：母书回答"为什么"，本册回答"怎么做"。
 
 收录篇目：skill-standardization / semantic-split / activity-duration-estimation / rag-assistant / structured-writer（成熟 5 篇）+ orchestrator / silprespec-orchestrator（实验性 2 篇）。
 
@@ -46,6 +46,7 @@ Copyright (c) 2026 wUwproject
 | novel-weaver-architecture.md | 结构化小说写作 | 技能 |
 | local-rag-builder-architecture.md | 本地 RAG 搭建 | 技能 |
 | orchestrator-architecture.md | 链驱动编排引擎 | 智能体 |
+| silprespec-orchestrator-architecture.md | 前置规范编排器 | 智能体 |
 | rag-assistant-architecture.md | 本地知识库智能体 | 智能体 |
 | structured-writer-architecture.md | 结构化写作智能体 | 智能体 |
 

@@ -20,7 +20,7 @@ See https://creativecommons.org/licenses/by-sa/4.0/ for details.
 | 方式 | 入口 |
 |------|------|
 | **在线阅读整本册子** | GitHub Pages：<https://ldxs001.github.io/architecture/> |
-| **下载 PDF / HTML / EPUB** | 发行版 **arch-v1.0.0**（[Gitee](https://gitee.com/wUwproject/architecture/releases/tag/arch-v1.0.0) / [GitHub](https://github.com/Ldxs001/architecture/releases/tag/arch-v1.0.0)，含 PDF 打印版） |
+| **下载 PDF / HTML / EPUB** | 发行版 **arch-v1.0.1**（[Gitee](https://gitee.com/wUwproject/architecture/releases/tag/arch-v1.0.1) / [GitHub](https://github.com/Ldxs001/architecture/releases/tag/arch-v1.0.1)，含 PDF 打印版） |
 | **册子源码（Markdown）** | 本目录 `book/`（frontmatter：版权页 / 导读 / 附录 A / 附录 B） |
 | **构建管线** | `build/`（`python build.py` 一键构建，复用母书管线） |
 
@@ -34,7 +34,7 @@ See https://creativecommons.org/licenses/by-sa/4.0/ for details.
 | 附录 A | `frontmatter/附录A_统一术语表.md` | 统一术语表 |
 | 附录 B | `frontmatter/附录B_运行速查.md` | 运行速查 |
 
-全册约 3.9 万字（arch-v1.0.0）。
+全册约 3.9 万字（arch-v1.0.1）。
 
 ## 目录结构
 
