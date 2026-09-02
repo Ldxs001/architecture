@@ -7,6 +7,14 @@ Copyright (c) 2026 wUwproject
 
 > wUwproject 各技能与智能体的架构设计文档集。CC BY-SA 4.0。
 
+## 系列三部曲
+
+| 母书 | 姊妹卷 · 排版 | 姊妹卷 · 架构（本仓库） |
+|------|--------------|----------------------|
+| <a href="https://github.com/Ldxs001/Cogito_Scribit/blob/main/book/README.md"><img src="assets/mother-cover.png" width="330" alt="《我思故我写》"></a> | <a href="https://github.com/Ldxs001/Cogito_Scribit/blob/main/typesetting/book/README.md"><img src="assets/typ-cover.png" width="330" alt="《排版解析》"></a> | <a href="book/README.md"><img src="book/cover.png" width="330" alt="《架构解析》"></a> |
+| **我思故我写**——一本 AI 写成的书 | **排版解析**——五层排版如何把一篇文章变成一本书 | **架构解析**——七套核心系统的工程实现 |
+| 回答"为什么" | 回答"怎么排" | 回答"怎么做" |
+
 ## 仓库定位
 
 本仓库独立托管 wUwproject 的技能与智能体架构设计文档。2026-08-02 自 `workbuddy-skills` 仓库的 `architecture/` 目录独立拆分而来。
@@ -20,14 +28,9 @@ Copyright (c) 2026 wUwproject
 
 本仓库 7 篇核心架构文档已汇编为册子《**我思故我写 · 架构解析——七套核心系统的工程实现**》（arch-v1.0.0，约 3.9 万字，CC BY-SA 4.0）——母书《我思故我写》的姊妹卷：母书回答"为什么"，本册回答"怎么做"。
 
-| 项 | 入口 |
-|----|------|
-| 在线阅读整本册子（GitHub Pages） | <https://ldxs001.github.io/architecture/> |
-| 下载 PDF / HTML / EPUB | 发行版 **arch-v1.0.0**（[GitHub](https://github.com/Ldxs001/architecture/releases/tag/arch-v1.0.0) / Gitee 同 tag，含 PDF 打印版） |
-| 册子源码（版权页/导读/术语表/运行速查 + 封面） | [`book/`](book/) |
-| 构建管线（MD → HTML/EPUB/PDF，复用母书管线） | `book/build/`（`python build.py` 一键构建） |
-
 收录篇目：skill-standardization / semantic-split / activity-duration-estimation / rag-assistant / structured-writer（成熟 5 篇）+ orchestrator / silprespec-orchestrator（实验性 2 篇）。
+
+**册子的在线阅读、下载（PDF / HTML / EPUB）与构建入口统一见 [`book/README.md`](book/README.md)。**
 
 ## 文档列表
 
@@ -54,7 +57,8 @@ architecture/
 ├── README.md
 ├── index.html                 # 架构解析册在线阅读落地页（GitHub Pages）
 ├── *-architecture.md          # 各项目架构文档
-└── book/                      # 架构解析册（版权页/导读/附录/封面/构建管线）
+├── assets/                    # 跨仓库展示用封面
+└── book/                      # 架构解析册（门面/版权页/导读/附录/封面/构建管线，详见 book/README.md）
 ```
 
 ## 维护约定
