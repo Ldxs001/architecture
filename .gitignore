@@ -15,3 +15,5 @@ book/build/_test_*
 book/build/_view_*.png
 book/build/_ttf/
 book/build/cover_v*.png
+# 事故排查产物归档（归档优于删除，不入库）
+book/build/.archive/
