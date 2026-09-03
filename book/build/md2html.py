@@ -113,6 +113,39 @@ def _format_cell(content):
     return content
 
 
+def _split_row(line):
+    r"""按单元格边界拆分表格行：只拆「未转义且不在行内代码内」的竖线。
+    - `\|` → 字面量竖线（GFM 转义规则，含行内代码内——GitHub 同款行为）
+    - 行内代码（`...`）内的裸竖线不拆（防 `编号|引用|出处` 举例误拆）
+    朴素 split('|') 会把 `` `\|` `` / 行内代码内裸 `|` 拆成多个单元格 → 列数
+    错乱、表头与数据行 cell 数不一致、多出的"最后一列"无表头且行尾缺右框
+    （表格右下不封闭）、Blink 表格分片计算崩坏——2026-09-02 事故（一）同类
+    根因，本仓（架构解析册）于母书/排版书仓修复后补齐移植（同版实现）。"""
+    cells, buf = [], []
+    i, n = 0, len(line)
+    in_code = False
+    while i < n:
+        ch = line[i]
+        if ch == '\\' and i + 1 < n and line[i + 1] == '|':
+            buf.append('|')
+            i += 2
+            continue
+        if ch == '`':
+            in_code = not in_code
+            buf.append(ch)
+            i += 1
+            continue
+        if ch == '|' and not in_code:
+            cells.append(''.join(buf))
+            buf = []
+            i += 1
+            continue
+        buf.append(ch)
+        i += 1
+    cells.append(''.join(buf))
+    return cells
+
+
 def _table(rows):
     """表格：rows = 分割后的行列表"""
     # 过滤分隔行（|------|、|:---:| 等整行连字符/冒号/竖线形式）
@@ -124,7 +157,7 @@ def _table(rows):
     ref_class = ''
     first_cells = None
     for i, r in enumerate(body):
-        cells = [c.strip() for c in r.strip().strip('|').split('|')]
+        cells = [c.strip() for c in _split_row(r.strip().strip('|'))]
         if i == 0:
             first_cells = cells
         tag = 'th' if i == 0 else 'td'
