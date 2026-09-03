@@ -38,6 +38,8 @@ Copyright (c) 2026 wUwproject
 | 配置统一源（Config Unification） | 散落各文件的常量收拢为单一模块（如 structured-writer 的 `novel/nover_config.py`）——推动点位唯一化 | 架构 05 |
 | 三智能体注册（Tool Registry） | silprespec-orchestrator 的 `tool_registry.py`：ToolSpec/FieldSpec/ExampleSpec 声明可调用的智能体及其输入槽位 | 架构 07 |
 | 填空域（Fill Domain） | 一个 LLM 在一次协作中负责填充的边界——编排器/检索/写作各域不重叠不冲突 | 架构 05/06/07 |
-| 编排对象迁移（Orchestration Object Migration） | 编排器调用对象从技能（subprocess 跑脚本）迁到智能体（HTTP POST 调 API）——对象形态变了，通道/LLM 在场位置/loop 形态跟着换 | 架构 08 |
-| 拟人 z 轴（Z-Axis） | 编排动作承担者在拟人尺度上的位置：下端人工编排（圈在系统外），上端 LLM 拟人自主表象——圈沿 z 轴上移但圆心（真决策）在人 | 架构 08 |
+| 编排对象迁移（Orchestration Object Migration） | 编排器调用对象从技能（subprocess 跑脚本）迁到智能体（HTTP POST 调 API）——对象形态变了，通道/LLM 在场位置/循环形态跟着换 | 架构 08 |
+| 拟人 z 轴（Z-Axis） | 编排动作承担者在拟人尺度上的位置：下端人工编排（圈在系统外），上端 LLM 拟人自主表象——**同一个圈整圈上移（圈还是那个圈，位置不同），圆心（真决策）在人，非轴上套圈** | 架构 08 |
+| 自主编排（Autonomous Orchestration） | 编排动作承担者的表象口径——LLM 以拟人姿态驱动每一步，但路径不自由（枚举内选择），不说"自由路径决策" | 架构 08 |
+| 填槽即决策（Slot-Filling as Decision） | LLM 每填一个槽位都是一次被约束的决策，逐句发生逐句生效——循环的每一圈都产生决策，非让 LLM 空转一圈 | 架构 08 |
 | 决策让渡（Decision Delegation） | 路径/边界/回退的真决策是否交给 LLM——判断"长得像 ReAct 的编排器"还是"真 agent"的判据，不看特征清单看决策归属 | 架构 08 |
