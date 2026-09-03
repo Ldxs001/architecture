@@ -8,11 +8,27 @@
    正文 PDF（@page 精确 18mm 边距）
 3. PyMuPDF 合并：封面页 + 正文页
 
-字体（arch-v1.1.2）：正文走 SourceHanPrint（思源黑体 CFF），代码/树形
+字体（arch-v1.1.3）：正文走 SourceHanPrint（思源黑体 CFF），代码/树形
 图走 SourceHanMono（思源等宽 CFF，SIL OFL 1.1 开源）——两者均注册为
 @font-face 并以 !important 全元素覆盖，杜绝与本地/内置 TTF
 （DejaVu/Consolas/NSimSun/PingFang/微软雅黑）混排，避免 Chromium
-page.pdf() 子集化失效引发的正文 NSimSun 级联（v1.1.1 事故根因）。
+page.pdf() 子集化失效引发的正文 NSimSun 级联（v1.1.2 事故根因）。
+
+整档缩放根治（arch-v1.1.3，实证校准）：Chromium page.pdf() 对「print 布局
+内容超出内容盒(~672px@96dpi = A4 794px − 18/16mm 边距)」做整本等比压缩，
+scale ≈ 内容盒/超宽右缘（标定：超宽 1185px→×0.667，正文 12pt→8pt；母书
+同机制）。v1.1.3 消除全部触发源而非补偿：
+  1) print 态 body 左对齐并收进内容盒（max-width:665px，不再 margin:auto
+     居中——居中偏移使满宽块右缘 = 64.5+665 = 729.5px 仍触发缩放）；
+  2) 全局 box-sizing:border-box（.toc 等带 padding 元素 width:auto 不再
+     超出 body 内容盒）；
+  3) 表格 width:100% + 单元格 overflow-wrap / 行内 code / 流程文本标签
+     （.edge-fall 等 print 态 white-space:normal）全部可断行，长 token 不
+     再横向溢出（white-space:pre 下 overflow-wrap 无效，必须改 normal）；
+  4) 残余硬溢出（等宽 nowrap 树行）在 print 媒体下按需 zoom 至右缘 ≤665px
+     ——zoom 须在 emulate_media('print') 后执行：screen 与 print 布局宽度
+     不同（pre→pre-wrap 生效），screen 态测量会误判（曾致 37 棵误缩/漏缩）。
+实测：正文 12.0pt / h1 20.4pt / toc 11.0pt / code 9.5pt，零超宽元素，无全局缩放。
 
 产物：book_print.pdf（封面独立 PDF 页 + 正文思源字形 Type3 矢量嵌入，
 无任何微软版权字体分发）
@@ -97,13 +113,35 @@ PRINT_CSS = """@page {
   margin: 18mm 16mm;
 }
 @media print {
-  /* 打印去掉 body padding/margin，边距由 @page 控制 */
-  body { padding: 0 !important; max-width: none; margin: 0 !important; }
+  /* ===== 整档缩放根治（arch-v1.1.3，实证校准版）=====
+     Chromium page.pdf() 对 print 布局中「内容超出内容盒(~672px@96dpi)」的
+     元素整本等比压缩（scale ≈ 672/超宽右缘）。以下规则把一切内容收进
+     665px 内容盒，缩放不再触发，正文保持自然 12pt。 */
+  /* 1) 全局 border-box：.toc 等 padding 元素 width:auto 不再超出内容盒 */
+  * { box-sizing: border-box !important; }
+  /* 2) body 左对齐（margin:0 而非 auto 居中——居中偏移 64.5px 使满宽块右缘
+        729.5px 仍触发缩放）并收进内容盒；行内 code 长 token 软断行兜底 */
+  body { padding: 0 !important; margin: 0 !important;
+         max-width: 665px !important; overflow-wrap: anywhere; }
+  code, kbd, samp { overflow-wrap: anywhere !important; }
+  /* 3) 打印去掉 body padding/margin，边距由 @page 控制 */
   /* 代码块长行强制换行：pre 默认 white-space:pre 不换行，打印无滚动条，
      超宽行会被直接裁掉（raw 输出/长行文本必现）——pre-wrap 保留原换行
-     并允许软换行，overflow-wrap:anywhere 兜底超长词/URL */
-  pre { white-space: pre-wrap; overflow-wrap: anywhere; }
-  /* 书籍标准分页：版权页/序言/阅读指南/每篇/结语/附录各自独立起页 */
+     并允许软换行，overflow-wrap:anywhere 兜底超长词/URL（须 !important，
+     否则被书内 pre 规则压制） */
+  pre { white-space: pre-wrap !important; overflow-wrap: anywhere; }
+  /* 4) 表格收进内容盒：宽 100% + 单元格可断行（多列长函数名表不再横向溢出） */
+  table { width: 100% !important; max-width: 100% !important;
+          table-layout: auto; }
+  table td, table th { overflow-wrap: anywhere; word-break: break-word; }
+  /* 5) 流程/边标签文本：print 态允许换行（pre→normal）。white-space:pre 下
+     overflow-wrap 无效，长 token 标签（如 config = {guide_prompt, …}）必须
+     改 normal 才会断行。树形图(.flow-treegroup/.flow-tree-row 等)保持 pre
+     框线对齐，由 render_pdf JS 在 print 媒体下按需 zoom。 */
+  .edge-fall, .flow-edge, .flow-chain-title, .flow-step,
+  .flow-layer-name, .flow-layer-key, .flow-cnode {
+    white-space: normal !important; overflow-wrap: anywhere; }
+  /* 6) 书籍标准分页：版权页/序言/阅读指南/每篇/结语/附录各自独立起页 */
   h1 { break-before: page; }
   /* 小节标题不落页末：标题与后续内容同页 */
   h2, h3, h4 { break-after: avoid; }
@@ -175,7 +213,7 @@ def make_cover_png():
     center('七套核心系统的工程实现', f_sub2, 1381, SUB2)
     draw.line([(W / 2 - 360, 1600), (W / 2 + 360, 1600)], fill=(201, 164, 92, 140), width=6)
     center('wUwproject · CC BY-SA 4.0 · 免费公开', f_meta, 2659, META)
-    center('arch-v1.1.2 · 2026 年 9 月', f_ver, 2841, VER)
+    center('arch-v1.1.3 · 2026 年 9 月', f_ver, 2841, VER)
     note = '本书文字（含书名、标题、正文、图表标注）使用思源黑体（Source Han Sans SC）渲染，字体采用 SIL OFL 1.1 开源许可。'
     nw = draw.textlength(note, font=f_note)
     draw.text(((W - nw) / 2, 3241), note, font=f_note, fill=NOTE)
@@ -212,6 +250,11 @@ def render_pdf():
         page.goto(html_url, wait_until='networkidle')
         page.evaluate('document.fonts.ready.then(() => true)')
         page.wait_for_timeout(2000)
+        # 关键：后续测量/zoom 一律切到 print 媒体（arch-v1.1.3 实证）——
+        # screen 与 print 布局宽度不同（print 下 pre→pre-wrap 等规则生效），
+        # 在 screen 态测量 scrollWidth 会与 page.pdf() 实际布局错位，导致
+        # zoom 漏缩/误缩（曾测 37 棵 vs print 态正确 15 棵）。
+        page.emulate_media(media='print')
         fonts = page.evaluate('''() => {
             const used = [];
             for (const f of document.fonts) {
@@ -234,6 +277,28 @@ def render_pdf():
             return marked;
         }''')
         print('超长元素标记:', overflow_tables if overflow_tables else '无')
+        # 树形图按需 zoom（arch-v1.1.3）：Chromium page.pdf() 对「print 布局
+        # 内容超内容盒(~672px@96dpi)」整本等比压缩（实证标定：超宽 1185px→
+        # ×0.667，正文 12pt→8pt；母书同机制）。PRINT_CSS 已消除软性触发源
+        # （body 收 665/表格与 code 断行/流程标签 pre→normal），此处只处理
+        # 硬溢出：等宽 nowrap 树行。预算 = 665（内容盒），并减去树左偏移——
+        # 树右缘 ≤665 才不触发缩放。zoom 已在 print 媒体下执行，测量与
+        # page.pdf() 布局一致。
+        tree_zooms = page.evaluate('''() => {
+            const budget = 665;   // A4 @96dpi 内容盒 ≈672，留 7px 安全
+            const out = [];
+            document.querySelectorAll('.flow-treegroup').forEach(el => {
+                const usable = budget - el.getBoundingClientRect().left - 14;
+                const orig = el.scrollWidth;
+                if (orig > usable) {
+                    const z = Math.max(0.5, usable / orig);
+                    el.style.zoom = String(z);
+                    out.push((el.className || '') + ': ' + orig + 'px→z' + z.toFixed(2));
+                }
+            });
+            return out;
+        }''')
+        print('树形图按需缩放:', tree_zooms if tree_zooms else '无（树均不超宽）')
         page.pdf(path=BODY_PDF, prefer_css_page_size=True,
                  print_background=True)
         browser.close()
@@ -264,8 +329,11 @@ def render_pdf():
 
 def find_h1_page(path):
     """定位正文起始页：首个含"版权页"标题的行（字号 = h1，比正文大）。
-    字号阈值按页 1 之后正文最大字号缩 0.8 计算（chromium 自动 fit 时
-    会按比例缩放正文 + h1，旧版阈值 15pt 在新版缩放下够不到）。"""
+    字号阈值按自然渲染标定（arch-v1.1.3）：正文 12pt / toc 条目 12pt /
+    h1 20.4pt——阈值取 14（>12 排除 toc 条目与正文，≤20.4 命中 h1）。
+    v1.1.2 阈值 >9 是 0.667× 整档缩放态（正文 8pt）的标定；v1.1.3 树形图
+    zoom 根治缩放后正文回到 12pt，阈值随自然字号重校准（同母书/排版书
+    >15 的"按书校准"纪律，见 STYLE_GUIDE 10.1）。"""
     import fitz
     doc = fitz.open(path)
     total = doc.page_count
@@ -279,7 +347,7 @@ def find_h1_page(path):
             for line in b['lines']:
                 ltext = ''.join(sp['text'] for sp in line['spans']).strip()
                 max_size = max((sp['size'] for sp in line['spans']), default=0)
-                if ltext == '版权页' and max_size > 9:
+                if ltext == '版权页' and max_size > 14:
                     h1_page = pi
                     found = True
                     break
@@ -347,6 +415,8 @@ def add_toc_dots(path, h1_page):
                     x1 = line['bbox'][2]
                     rows.append((pi, y, x0, x1, s))
     # 2) 正文标题匹配（大字号标题行 + 顺序锚定）
+    # 阈值 >= 15：正文 12pt 排除、h2 16.8pt / h1 20.4pt 命中（自然字号标定，
+    # arch-v1.1.3；v1.1.2 缩放态正文 8pt 用 >=12 即可，现随字号重校准）
     gray = (0.6, 0.6, 0.6)
     font = fitz.Font('helv')
     drawn = 0
@@ -366,7 +436,7 @@ def add_toc_dots(path, h1_page):
                 for line in b['lines']:
                     ltext = ''.join(sp['text'] for sp in line['spans'])
                     max_size = max((sp['size'] for sp in line['spans']), default=0)
-                    if max_size >= 12 and ltext.replace(' ', '').replace('\u3000', '').startswith(key):
+                    if max_size >= 15 and ltext.replace(' ', '').replace('\u3000', '').startswith(key):
                         hit = True
                         break
                 if hit:
