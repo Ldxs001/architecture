@@ -3,16 +3,24 @@
 
 流程：
 1. PIL 渲染封面 PNG（思源黑体 OTF 直接画入图片，150dpi A4）
-2. book/build/output/book.html → 打印版 HTML（去 dark / 思源黑体
-   @font-face / 打印 CSS）→ Playwright 渲染正文 PDF（@page 精确 18mm 边距）
+2. book/build/output/book.html → 打印版 HTML（去 dark / 思源黑体 +
+   思源等宽 @font-face / 字体收敛全覆盖 / 打印 CSS）→ Playwright 渲染
+   正文 PDF（@page 精确 18mm 边距）
 3. PyMuPDF 合并：封面页 + 正文页
 
-产物：book_print.pdf（封面独立 PDF 页 + 正文 Type3 思源黑体矢量字形，
-零字体嵌入、零分发争议；封面与正文物理分离，不会互相污染）
-用法：cd book/build/PDF && python make_pdf.py
+字体（arch-v1.1.2）：正文走 SourceHanPrint（思源黑体 CFF），代码/树形
+图走 SourceHanMono（思源等宽 CFF，SIL OFL 1.1 开源）——两者均注册为
+@font-face 并以 !important 全元素覆盖，杜绝与本地/内置 TTF
+（DejaVu/Consolas/NSimSun/PingFang/微软雅黑）混排，避免 Chromium
+page.pdf() 子集化失效引发的正文 NSimSun 级联（v1.1.1 事故根因）。
+
+产物：book_print.pdf（封面独立 PDF 页 + 正文思源字形 Type3 矢量嵌入，
+无任何微软版权字体分发）
+用法：cd book/build && python make_pdf.py
 前置：pip install playwright pillow pymupdf
       python -m playwright install chromium
-      本目录须有 SourceHanSansSC-Regular/Medium/Bold.otf（封面 + @font-face）
+      本目录须有 SourceHanSansSC-{Regular,Medium,Bold}.otf（封面 + 正文）
+      与 SourceHanMonoSC-{Regular,Medium,Bold}.otf（代码/树等宽）
 """
 import io
 import os
@@ -29,7 +37,7 @@ BODY_PDF = os.path.join(BASE, 'book_print.body.pdf')
 OUT = os.path.join(BASE, 'book_print.pdf')
 
 FONT_BODY = '"SourceHanPrint", "Source Han Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif'
-FONT_MONO = '"DejaVu Sans Mono", "SourceHanPrint", Consolas, monospace'
+FONT_MONO = '"SourceHanMono", Consolas, monospace'
 
 FONT_FACE = """@font-face {
   font-family: "SourceHanPrint";
@@ -45,7 +53,44 @@ FONT_FACE = """@font-face {
   font-family: "SourceHanPrint";
   src: url("SourceHanSansSC-Bold.otf") format("opentype");
   font-weight: bold;
+}
+@font-face {
+  font-family: "SourceHanMono";
+  src: url("SourceHanMonoSC-Regular.otf") format("opentype");
+  font-weight: normal;
+}
+@font-face {
+  font-family: "SourceHanMono";
+  src: url("SourceHanMonoSC-Medium.otf") format("opentype");
+  font-weight: 500;
+}
+@font-face {
+  font-family: "SourceHanMono";
+  src: url("SourceHanMonoSC-Bold.otf") format("opentype");
+  font-weight: bold;
 }"""
+
+# 全元素字体统一覆盖：正文系 SourceHanPrint、代码/树系 SourceHanMono（等宽）。
+# 必须 !important 碾压——md2html 的 flow-* 组件带独立 font-family 声明
+# （如 .flow-tree-row .flow-inline-arrow），普通替换在 cascade 上赢不过
+# specificity；Chromium page.pdf() 对"@font-face CFF + 本地/内置 TTF"
+# （DejaVu/Consolas/NSimSun/PingFang/微软雅黑）同文档混排做子集化会触发
+# 嵌入失效，自触发页起正文整体回退 NSimSun 级联（arch-v1.1.2 字体事故根因）。
+# 全文档字体收敛为两个 @font-face 家族后 0 回退、0 版权字体分发。
+UNIFY_CSS = """
+/* ==== 字体收敛全覆盖（arch-v1.1.2）==== */
+* {
+  font-family: "SourceHanPrint", sans-serif !important;
+}
+pre, code, kbd, samp,
+.flow-tree, .flow-treegroup, .flow-tree-row, .flow-tnode, .flow-tmark,
+.flow-branch, .flow-step.flow-branch,
+.flow-inline-arrow, .edge-fall, .flow-arrow,
+.flow-cnode, .flow-carr, .flow-layer-name, .flow-layer-key,
+.flow-chain-title, .flow-note, .flow-edge, .flow-phase-tag {
+  font-family: "SourceHanMono", "SourceHanPrint", sans-serif !important;
+}
+"""
 
 PRINT_CSS = """@page {
   size: A4;
@@ -130,7 +175,7 @@ def make_cover_png():
     center('七套核心系统的工程实现', f_sub2, 1381, SUB2)
     draw.line([(W / 2 - 360, 1600), (W / 2 + 360, 1600)], fill=(201, 164, 92, 140), width=6)
     center('wUwproject · CC BY-SA 4.0 · 免费公开', f_meta, 2659, META)
-    center('arch-v1.1.1 · 2026 年 9 月', f_ver, 2841, VER)
+    center('arch-v1.1.2 · 2026 年 9 月', f_ver, 2841, VER)
     note = '本书文字（含书名、标题、正文、图表标注）使用思源黑体（Source Han Sans SC）渲染，字体采用 SIL OFL 1.1 开源许可。'
     nw = draw.textlength(note, font=f_note)
     draw.text(((W - nw) / 2, 3241), note, font=f_note, fill=NOTE)
@@ -148,8 +193,8 @@ def build_print_html():
     t = t.replace('"PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif', FONT_BODY)
     t = t.replace('Consolas, "Courier New", monospace', FONT_MONO)
     t = t.replace('"PingFang SC", "Microsoft YaHei"', FONT_BODY)  # 兜底形态
-    # 3) 注入 @font-face + 打印 CSS
-    t = t.replace('</style>', FONT_FACE + '\n' + PRINT_CSS + '\n</style>', 1)
+    # 3) 注入 @font-face + 打印 CSS + 字体收敛覆盖
+    t = t.replace('</style>', FONT_FACE + '\n' + PRINT_CSS + '\n' + UNIFY_CSS + '\n</style>', 1)
     with io.open(TMP_HTML, 'w', encoding='utf-8', newline='\n') as f:
         f.write(t)
     print('打印版 HTML 已生成:', TMP_HTML)
@@ -218,8 +263,9 @@ def render_pdf():
 
 
 def find_h1_page(path):
-    """定位正文起始页：首个大字号（>15pt）"版权页"标题行。
-    标题可能被拆成单字 span，须按行合并判断。"""
+    """定位正文起始页：首个含"版权页"标题的行（字号 = h1，比正文大）。
+    字号阈值按页 1 之后正文最大字号缩 0.8 计算（chromium 自动 fit 时
+    会按比例缩放正文 + h1，旧版阈值 15pt 在新版缩放下够不到）。"""
     import fitz
     doc = fitz.open(path)
     total = doc.page_count
@@ -233,7 +279,7 @@ def find_h1_page(path):
             for line in b['lines']:
                 ltext = ''.join(sp['text'] for sp in line['spans']).strip()
                 max_size = max((sp['size'] for sp in line['spans']), default=0)
-                if ltext == '版权页' and max_size > 15:
+                if ltext == '版权页' and max_size > 9:
                     h1_page = pi
                     found = True
                     break

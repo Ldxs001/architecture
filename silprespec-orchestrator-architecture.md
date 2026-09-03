@@ -30,7 +30,7 @@ silprespec-orchestrator 是**前置规范编排器**，核心理念：**LLM 只�
            → LLM 填空选组合编号，PY 查表验证
          Composer（PY 确定性组合，调 exec_recipe）
            → 生成原子(LLM 填空) → 后处理原子(PY) → 校验原子(PY) → 观测原子(PY)
-           ↳ 不通过则 retry loop（最多 max_retry 次）
+           → 不通过则 retry loop（最多 max_retry 次）
          Executor（LLM 填空生成工具输入 → HTTP 调智能体 API）
          Adapter（步骤间适配：能直通则直传，不能则 loop 回 Mapper 选适配组合）
   → 汇总输出
@@ -166,7 +166,7 @@ _run_serial(subtasks, pm):
        comp_result = composer.compose(combo.id, st["desc"], config)
          → exec_recipe(way_id, wc, user_input, chat)
          → 生成原子 → 后处理原子 → 校验原子 → 观测原子
-         ↳ 不通过则 retry loop（最多 max_retry 次）
+         → 不通过则 retry loop（最多 max_retry 次）
 
     ④ 调智能体（Executor）
        exec_input = comp_result.get("filled", step.input_data)

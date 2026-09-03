@@ -5,3 +5,13 @@ book/build/book_print*.html
 __pycache__/
 *.pyc
 book/build/cover.png
+# 二分/探针/单字体/双字体测试临时资产（事故排查产物，进 git 但不跟仓）
+book/build/_bisect*/
+book/build/_bisect_*.py
+book/build/_mono/
+book/build/_probe*
+book/build/_seg_*
+book/build/_test_*
+book/build/_view_*.png
+book/build/_ttf/
+book/build/cover_v*.png
