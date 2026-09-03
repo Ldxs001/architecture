@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 《我思故我写 · 架构解析》书稿拼接脚本
-将导读 + 7 篇架构文档拼接为单一书稿 Markdown。
+将导读 + 8 篇架构文档拼接为单一书稿 Markdown。
 用法: python assemble.py [输出路径]
 零依赖（标准库）。入书规范参考 Cogito_Scribit STRUCTURE_GUIDE。
 
@@ -17,7 +17,7 @@ import sys, io, os, re
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# 书的结构（顺序即书的顺序；按主书第 I 部工程线排序，实验性两篇收尾）
+# 书的结构（顺序即书的顺序；按主书第 I 部工程线排序，实验性编排器两篇之后为演进收束篇）
 # 元组第三项 = 成书章题（None = 保留源 H1，用于版权页/导读/附录）
 STRUCTURE = [
     ("frontmatter/00_版权页.md", "版权页", None),
@@ -29,6 +29,7 @@ STRUCTURE = [
     ("structured-writer-architecture.md", "架构 05 · structured-writer", "05｜Structured Writer 架构文档"),
     ("orchestrator-architecture.md", "架构 06 · orchestrator（实验性）", "06｜Orchestrator 架构文档"),
     ("silprespec-orchestrator-architecture.md", "架构 07 · silprespec-orchestrator（实验性）", "07｜silprespec-orchestrator 架构文档"),
+    ("技能编排器到agent编排器——编排对象迁移与圈的z轴.md", "架构 08 · 演进收束篇", "08｜技能编排器到 agent 编排器——编排对象迁移与“圈”的 z 轴"),
     ("frontmatter/附录A_统一术语表.md", "附录 A 统一术语表", "附录 A 统一术语表"),
     ("frontmatter/附录B_运行速查.md", "附录 B 运行速查", "附录 B 运行速查"),
 ]

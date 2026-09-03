@@ -26,9 +26,9 @@ Copyright (c) 2026 wUwproject
 
 ## 架构解析（姊妹卷）
 
-本仓库 7 篇核心架构文档已汇编为册子《**我思故我写 · 架构解析——七套核心系统的工程实现**》（arch-v1.0.2，约 3.9 万字，CC BY-SA 4.0）——母书《我思故我写》的姊妹卷：母书回答"为什么"，本册回答"怎么做"。
+本仓库 8 篇核心文档已汇编为册子《**我思故我写 · 架构解析——七套核心系统的工程实现**》（arch-v1.1.0，约 4.4 万字，CC BY-SA 4.0）——母书《我思故我写》的姊妹卷：母书回答"为什么"，本册回答"怎么做"。
 
-收录篇目：skill-standardization / semantic-split / activity-duration-estimation / rag-assistant / structured-writer（成熟 5 篇）+ orchestrator / silprespec-orchestrator（实验性 2 篇）。
+收录篇目：skill-standardization / semantic-split / activity-duration-estimation / rag-assistant / structured-writer（成熟 5 篇）+ orchestrator / silprespec-orchestrator（实验性 2 篇，编排器两代）+ 演进收束篇《技能编排器到 agent 编排器——编排对象迁移与"圈"的 z 轴》（架构 08，以编排器两代为标本的论述篇，非系统）。
 
 **册子的在线阅读、下载（PDF / HTML / EPUB）、入书规范（`STRUCTURE_GUIDE.md`）与构建入口统一见 [`book/README.md`](book/README.md)，发行说明见 [`成册说明_架构解析.md`](成册说明_架构解析.md)。**
 
@@ -47,6 +47,7 @@ Copyright (c) 2026 wUwproject
 | local-rag-builder-architecture.md | 本地 RAG 搭建 | 技能 |
 | orchestrator-architecture.md | 链驱动编排引擎 | 智能体 |
 | silprespec-orchestrator-architecture.md | 前置规范编排器 | 智能体 |
+| 技能编排器到agent编排器——编排对象迁移与圈的z轴.md | 演进收束篇（编排对象迁移论述，架构 08） | 架构论述 |
 | rag-assistant-architecture.md | 本地知识库智能体 | 智能体 |
 | structured-writer-architecture.md | 结构化写作智能体 | 智能体 |
 

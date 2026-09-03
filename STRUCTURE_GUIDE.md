@@ -7,14 +7,14 @@ Copyright (c) 2026 wUwproject
 
 > 本文档固定《我思故我写 · 架构解析——七套核心系统的工程实现》成书的全部标准：单篇规范、入书清洗、配套同步、字数统计、版本号与构建/发布管线。
 > 分工：本文档管"架构文档定稿后怎么变成书"（book/ 目录的成书全过程）；架构文档自身的写法（系统概览 → 模块划分 → 核心机制 → 边界）与"文档同步代码"纪律，见各篇开头声明与导读。
-> 基准范本：arch-v1.0.0 成册 + arch-v1.0.1 清洗管线化补全（2026-09-02 固化）。
+> 基准范本：arch-v1.0.0 成册 + arch-v1.0.1 清洗管线化补全（2026-09-02 固化）+ arch-v1.1.0 演进收束篇（架构 08）入书（2026-09-03）。
 > 标准一旦固定不再变动——改规范 = 改本文档 + 改 assemble/build 脚本 + 全量 rebuild。
 
 ---
 
 ## 一、单篇规范（仓库顶层 `*-architecture.md`）
 
-仓库顶层架构文档 13 篇（技能 9 + 智能体 4），其中 **7 篇入书**（成熟 5 + 实验性 2，见导读），其余 6 篇保持仓库文档形态（入书判据见第三章）。单篇结构要素：
+仓库顶层架构文档 14 篇（技能 9 + 智能体 4 + 架构论述 1），其中 **8 篇入书**（成熟 5 + 实验性 2 + 演进收束 1，见导读），其余 6 篇保持仓库文档形态（入书判据见第三章）。单篇结构要素：
 
 | 元素 | 形态 |
 |---|---|
@@ -54,11 +54,11 @@ Copyright (c) 2026 wUwproject
 | `book/frontmatter/00_导读.md` | 映射表加行（架构篇/系统版本/对应母书篇目/落地原则）；"七系统关系总览"若涉及分层结构同步 |
 | `book/frontmatter/附录A_统一术语表.md` | 术语若有新增/变更同步 |
 | `book/frontmatter/附录B_运行速查.md` | 运行方式若有变更同步 |
-| 根目录 `README.md` | 姊妹卷段版本/字数；文档列表行（**全部 13 篇都列**，含未入书） |
-| `book/README.md` | 获取表 release tag、规模行、正文七篇/附录说明 |
+| 根目录 `README.md` | 姊妹卷段版本/字数；文档列表行（**全部 14 篇都列**，含未入书） |
+| `book/README.md` | 获取表 release tag、规模行、正文八篇/附录说明 |
 | **`index.html`（在线阅读落地页）** | PDF 下载链接 release tag、底部版本/日期（**历史上最易漏**，arch-v1.0.1 教训：内容已入库而 index 停在 arch-v1.0.0，见第七章） |
 | `book/build/make_pdf.py` | 封面版本字（`center('arch-vX.Y.Z · YYYY 年 M 月', …)`） |
-| 全书重建 | `cd book && python build/build.py`（assemble → 全书.md + book.html + book.epub，输出"（11 章）"须与版权页一致）→ `python build/make_pdf.py`（封面 + 打印版 PDF）→ `python build/count_words.py` 取字数 |
+| 全书重建 | `cd book && python build/build.py`（assemble → 全书.md + book.html + book.epub，输出"（12 章）"须与版权页一致）→ `python build/make_pdf.py`（封面 + 打印版 PDF）→ `python build/count_words.py` 取字数 |
 
 ---
 
@@ -69,18 +69,18 @@ Copyright (c) 2026 wUwproject
 | # | 位置 | 内容 |
 |---|---|---|
 | 1 | `count_words.py` | 统计脚本（自动，无硬编码） |
-| 2 | `book/frontmatter/00_版权页.md` | `约 X.X 万字（出版折算口径）…11 章` |
+| 2 | `book/frontmatter/00_版权页.md` | `约 X.X 万字（出版折算口径）…12 章` |
 | 3 | 根目录 `README.md` | `（arch-vX.Y.Z，约 X.X 万字…）` |
 | 4 | `book/README.md` | `全册约 X.X 万字（arch-vX.Y.Z）` |
 | 5 | `index.html` | 结构卡片/底部版本（本册落地页精简版，当前不含字数表述，若加须同步） |
 
-当前值：约 3.9 万字（出版折算 38,776），11 章（版权页 + 导读 + 架构 01-07 + 附录 A/B）。
+当前值：约 4.4 万字（出版折算 43,928），12 章（版权页 + 导读 + 架构 01-08 + 附录 A/B）。
 
 ---
 
 ## 五、版本号规范（全量维护点）
 
-**版本规则**：新增入书篇/附录结构变化/章节数变化 → 次版本 +1（arch-v1.0.x → arch-v1.1.0）；纯清洗修正、文档/规范文档新增 → 修订号 +1（arch-v1.0.1 → arch-v1.0.2）。**章数变化与版本号变化必须同时发生。**
+**版本规则**：新增入书篇/附录结构变化/章节数变化 → 次版本 +1（arch-v1.0.2 → arch-v1.1.0：新增演进收束篇架构 08，正文 7→8 篇、11→12 章）；纯清洗修正、文档/规范文档新增 → 修订号 +1（arch-v1.0.1 → arch-v1.0.2）。**章数变化与版本号变化必须同时发生。**
 
 | # | 位置 | 内容 | 更新时机 |
 |---|---|---|---|
@@ -98,13 +98,13 @@ Copyright (c) 2026 wUwproject
 ## 六、构建与发布管线
 
 ```text
-顶层文档 ×7 + frontmatter ×4
+顶层文档 ×8 + frontmatter ×4
         │ python build/build.py
         ▼
 assemble.py（清洗 + 章题重命名 + 拼接）
         → output/架构解析全书.md
         → md2html → output/book.html
-        → build_epub → output/book.epub（11 章）
+        → build_epub → output/book.epub（12 章）
         │ python build/make_pdf.py（playwright 渲染）
         ▼
 封面 PNG（300dpi 2480×3508）+ book_print.pdf（封面 + 正文，页码奇右偶左 + 目录点线/书签）

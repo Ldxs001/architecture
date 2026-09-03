@@ -36,3 +36,7 @@ Copyright (c) 2026 wUwproject
 - orchestrator ──subprocess──→ **技能**（可执行过滤后的技能池）
 - silprespec-orchestrator ──HTTP──→ **智能体 API**（rag-assistant / structured-writer）
 - skill-standardization ──审计──→ 其他所有技能与智能体的文档规范（元层，不参与业务调用）
+
+## 五、演进收束篇（架构 08）
+
+架构 08 为纯论述篇（非系统），**无运行实体**——它把编排器两代的变化线（对象/通道迁移、表象 vs 内核、"圈"的 z 轴）立成专文，运行形态以架构 06（orchestrator）与架构 07（silprespec-orchestrator）为准。
