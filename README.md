@@ -30,7 +30,7 @@ Copyright (c) 2026 wUwproject
 
 收录篇目：skill-standardization / semantic-split / activity-duration-estimation / rag-assistant / structured-writer（成熟 5 篇）+ orchestrator / silprespec-orchestrator（实验性 2 篇，编排器两代）+ 演进收束篇《技能编排器到 agent 编排器——编排对象迁移与"圈"的 z 轴》（架构 08，以编排器两代为标本的论述篇，非系统）。
 
-**册子的在线阅读、下载（PDF / HTML / EPUB）与构建入口统一见 [`book/README.md`](book/README.md)，发行说明见 [`成册说明_架构解析.md`](成册说明_架构解析.md)；入书规范（STRUCTURE_GUIDE / STYLE_GUIDE / 成书规范）存于母书仓 `Cogito_Scribit/typesetting/`（族系规范之家，本仓不持有规范文件）。**
+**册子的在线阅读、下载（PDF / HTML / EPUB）与构建入口统一见 [`book/README.md`](book/README.md)，发行说明见 [`成册说明_架构解析.md`](成册说明_架构解析.md)；入书规范（STRUCTURE_GUIDE / STYLE_GUIDE / BOOK_GUIDE）存于母书仓 `Cogito_Scribit/typesetting/`（族系规范之家，本仓不持有规范文件）。**
 
 ## 文档列表
 
