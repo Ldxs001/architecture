@@ -33,6 +33,10 @@ Copyright (c) 2026 wUwproject
 | exec_recipe | 组合的执行配方：generate / postprocess / validate / retry / observe 五元声明 | 架构 07（源承 silprespec-emulator） |
 | ProgressMap（进度地图） | 贯穿编排全程的进度对象——子任务分解到执行汇总的每一步状态 | 架构 07 |
 | KB 签名（KB Signature） | rag-assistant 的知识库关键词签名（四分法采样 + jieba 候选 + BCE 排序）——路由的精排依据 | 架构 04 |
+| 查询类型（Query Type / 场景） | rag-assistant 的三槽位取值约束模板（label + example + rules）——问题命中哪个场景就按哪个场景的规则填槽；内置 4 类（fact/compare/opposition/analysis）+ 用户自定义同 key 覆盖，配置级变更 | 架构 04 |
+| 前置分类两级收敛 | 无定义穷举 → 三槽位骨架（归类，系统锁定）→ 查询类型场景（场景，用户配置）→ 有限枚举；归类切维度、场景约束值域，两级正交 | 架构 04 |
+| Ranker 后插件点位（before_response） | input_return 插件的执行时机——完整检索管道（含 rerank）完成后、LLM 综合回答前：只消费管道产出（附加注入不改写）、失败透传、五道防线复用；引擎管道内部无插件点位，主体变更必须架构级，用点位隔离代替试错 | 架构 04 |
+| evidence 原文锚定 | 每个 entity/attr 必须提供原文出处（JSON 字典，key 与槽位写法精确一致、value 为原文单连续子串），经当前消息/上一轮问答三源校验 + NLI verify 语义二次判断 | 架构 04 |
 | top-N 多 KB 路由 | route_query 收集所有过阈值 KB 按分降序取前 N 个并查（v2.3.0），`router.top_n` / `classify_threshold` | 架构 04 |
 | vendor 自包含 | 第三方库嵌入 `vendor/` 目录（bs4/pypdfium2/markdownify…），零外部 pip 安装也可运行 | 架构 04 |
 | 配置统一源（Config Unification） | 散落各文件的常量收拢为单一模块（如 structured-writer 的 `novel/nover_config.py`）——推动点位唯一化 | 架构 05 |

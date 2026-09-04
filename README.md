@@ -26,7 +26,7 @@ Copyright (c) 2026 wUwproject
 
 ## 架构解析（姊妹卷）
 
-本仓库 8 篇核心文档已汇编为册子《**我思故我写 · 架构解析——七套核心系统的工程实现**》（arch-v1.1.3，约 4.6 万字，CC BY-SA 4.0）——母书《我思故我写》的姊妹卷：母书回答"为什么"，本册回答"怎么做"。
+本仓库 8 篇核心文档已汇编为册子《**我思故我写 · 架构解析——七套核心系统的工程实现**》（arch-v1.1.4，约 5.0 万字，CC BY-SA 4.0）——母书《我思故我写》的姊妹卷：母书回答"为什么"，本册回答"怎么做"。
 
 收录篇目：skill-standardization / semantic-split / activity-duration-estimation / rag-assistant / structured-writer（成熟 5 篇）+ orchestrator / silprespec-orchestrator（实验性 2 篇，编排器两代）+ 演进收束篇《技能编排器到 agent 编排器——编排对象迁移与"圈"的 z 轴》（架构 08，以编排器两代为标本的论述篇，非系统）。
 

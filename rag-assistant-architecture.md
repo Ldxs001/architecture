@@ -9,7 +9,7 @@ See https://creativecommons.org/licenses/by-sa/4.0/ for details.
 
 > 独立 RAG 智能体 — LLM 驱动的组合式语义检索与多库路由。
 > 作者：wUwproject | 许可证：Apache 2.0
-> 更新：2026-08-21 (v2.4.1) — top-N 多 KB 路由 + PDF 引擎迁移 pypdfium2 + 乱码三层检测
+> 更新：2026-09-04（对照代码 v2.4.1 全文复核）— 决策循环两阶段重写 + evidence 原文锚定 + 查询类型场景层（§1.4 可配置的前置分类）+ Ranker 后插件点位解析（§3.10）+ 会话管理补录
 
 ---
 
@@ -19,18 +19,20 @@ RAG Assistant 是一个**本地知识库问答智能体**，基于 local-rag-bui
 
 ```
 用户输入
-  → [LLM 决策层]
-       ├─ 闲聊 → 直接回答
-       └─ 知识库查询 → entities/attrs/rel 分词
-           → [组合展开器] 穷举 entities × attrs（≥2 entity 时两两配对 + attrs + rel）
+  → [LLM 决策层·两阶段]
+       阶段 1 模式判定（单次调用）：chat（显式 <<ACTION type="chat">>）→ 直接回答
+       阶段 2 动作校验循环（≤5 次，禁止逃逸动作模式，耗尽禁止自由回答）
+       └─ 知识库查询 → entities/attrs/rel 三槽位分词 + evidence 原文锚定
+           （槽位填写按查询类型场景规则：内置 4 类 + 用户自定义，见 §1.4）
+           → [组合展开器] 三层切片（entity 单独 / entity×attr / rel 语义两两配对）
            → [多切片检索] 每片独立走完整 RAG 流程
               1. 路由（route_query → 嵌入模型 × KB签名/关键词）
               2. 检索（retrieve_documents → ChromaDB 相似度 + HNSW 自动修复）
               3. (可选) 重排序（reranker：model / rule / hybrid 三模式）
               4. (可选) NLI 三向分类（entailment / neutral / contradiction）
               5. 构建上下文（build_context，含 NLI 标签渲染 + SM3 去重）
-           → [SM3 国密去重合并] 按内容哈希去重
-           → [插件注入] input_return 插件结果注入上下文（如联网搜索补充）
+           → [SM3 国密去重合并] 按内容哈希去重 + 源文档头部块回填
+           → [插件注入·Ranker 后点位] input_return 插件注入上下文（检索管道含 rerank 完成后、综合回答前，见 §3.10）
            → [LLM 综合回答] 基于完整上下文 + 用户画像 + 3插槽 prompt 生成回答
            → [插件副作用] input_output 插件执行（如日志记录）
            → [引用门禁] 校验 LLM 回答中的 [n] 引用是否在资料段落范围内
@@ -41,13 +43,16 @@ RAG Assistant 是一个**本地知识库问答智能体**，基于 local-rag-bui
 | 原则 | 说明 |
 |------|------|
 | **LLM 分词 > 规则分词** | 实体/属性由 LLM 基于语义标注，不依赖关键词规则 |
-| **穷举 > 猜测** | 所有 entities × attrs 组合都查一遍，不预判哪组最优。rel 时 entities 两两配对 |
+| **穷举 > 猜测** | 三层切片全查一遍（entity 单独 / entity×attr / rel 语义切片），不预判哪组最优。rel 时多实体两两配对，单实体 attrs 两两配对 |
+| **有限枚举 > 无界穷举** | 三槽位骨架限定归类，查询类型场景约束取值——穷举收敛为三元分类下专属场景内的有限枚举（§1.4） |
+| **原文锚定 > 自由发挥** | evidence 强制每个 entity/attr 提供原文出处，三源校验 + NLI 语义二次判断，拒绝 LLM 编造检索词 |
 | **去重 > 冗余** | SM3 国密哈希按内容去重，避免重复上下文浪费 token |
-| **自修正 > 静默丢弃** | LLM 格式错误时反馈重试（v0.9.5: `chat()` 传 `max_retries=2`），不静默吞掉 |
+| **自修正 > 静默丢弃** | 两阶段决策：模式判定单次调用 → 动作校验循环最多 5 次，解析错误/校验拒绝反馈重试，禁止逃逸动作模式，耗尽后禁止 LLM 自由回答 |
 | **技能完整走 > 绕路** | 每片独立走 route_query → retrieve_documents → reranker → NLI → build_context 全流程，不改造技能内部逻辑 |
-| **配置持久化 > 运行时内存** | 所有配置（LLM / 路由 / 重排序 / NLI / 切片 / prompt 插槽）写入 `rag_config.json`，刷新页面不丢 |
-| **历史隔离 > 上下文污染** | 第一轮 LLM 决策仅传压缩摘要（不传完整历史），避免上一轮 entities 泄漏到当前决策 |
+| **配置持久化 > 运行时内存** | 所有配置（LLM / 路由 / 重排序 / NLI / 切片 / prompt 插槽 / 查询类型）写入 `rag_config.json`，刷新页面不丢 |
+| **历史隔离 > 上下文污染** | 第一轮 LLM 决策仅传压缩摘要 + 上一轮问答原文（供 evidence 三源引用），完整历史不进决策，摘要概念禁止用作当前 entities/attrs |
 | **用户画像自适应 > 固定 prompt** | 基于 OCEAN 五维人格 + 语言风格分析的画像系统，自动调整 LLM 交互风格 |
+| **旁路扩展 > 主体侵入** | 扩展点只增不改、失败透传；主体（路由/检索/精排）变更必须架构级，不接受补丁式侵入（§3.10） |
 
 ### 1.2 路由开关行为
 
@@ -92,6 +97,53 @@ v1.7.0b1 核心改进：
 - 签名同时保存多段子签名（`signatures` 列表），路由时逐个 cosine 取最高分
 - 反哺从全局排序改为四象限均分：`(30 - originals) // 4`
 - 停用词扩展 8 个 PDF 分页残留词：接上、转下页、上一页、下一页、上页、下页、翻页、第几页
+
+### 1.4 可配置的前置分类 — 三元分类下的专属场景有限枚举
+
+前置分类解决一个问题：任意自然语言问题的检索空间是**无定义穷举**，必须收敛为有限枚举，切片数与检索成本才可预估。收敛分两级，两级正交：
+
+```
+无定义穷举（任意自然语言问题）
+  ↓ 第一级【归类】：三槽位骨架（系统锁定，不可配）
+     所有查询动作固定为 entities（主体）/ attrs（目的）/ rel（行为）
+     三槽位 + type / kb / evidence 参数，LLM 只按语义规则填槽（§5.3）
+  = 归类内穷举 —— 穷举有了维度，但每个槽位内仍可无界取值
+  ↓ 第二级【场景】：查询类型（预制 + 用户自定义，可配）
+     每个场景 = 三槽位取值约束模板（label + example + rules），
+     规定该类问题 entities 填什么、attrs 填几个/什么域、rel 是否固定
+  = 用户场景内穷举 —— 场景内槽位取值模式有限
+  ↓ 组合展开器（三层切片）
+  = 有限枚举 —— 切片数场景内可预估、可预算
+```
+
+**第一级：归类。** 三槽位骨架就是限定了分类——无论问题多自由，LLM 输出都被固定到 entities/attrs/rel 三维。骨架由系统锁定（动作格式 + 校验器 + 展开器三方联动），变更属协议级/架构级改动。
+
+**第二级：场景。** 三元分类下每一类槽位仍可无界取值，因此需要场景约束值域。场景不是启发式技巧，而是**用户问题的类型归属**：问题本身是二元对立的，就命中 opposition 场景，按其规则填槽。归类与场景的关系：**几个固定参数（三槽位）就是归类，用户配置（场景增删与取值规则）就是场景**——用户最清楚自己领域内的问题形态，场景内穷举因此收敛为有限枚举。
+
+内置场景（`BUILTIN_QUERY_TYPES`，agent.py）：
+
+| key | label | example | entities 规则 | attrs 规则 | rel 规则 |
+|-----|-------|---------|--------------|-----------|----------|
+| `fact` | 事实查询 | "茅台的价格是多少？" | 主体/名词，能被替换为"关于XX"的 XX | 目的/属性维度，禁比较意图词与疑问词 | 留空（不触发两两配对） |
+| `compare` | 实体对比 | "茅台和五粮液酿造工艺异同" | 被对比的多个实体，逗号分隔 | 对比维度，"比它们的什么方面" | `"对比"` |
+| `opposition` | 二元对立 | "AI是顺着倾向回答还是独立思考" | 只填主体，不把对立面放进来 | 两个对立面的表述，逗号分隔 | `"对比"` |
+| `analysis` | 多维度分析 | "新能源汽车的市场规模、政策环境和消费者态度" | 分析主体，只填 1 个 | 分析维度并列列举 | 留空（两主体对比应改用 compare） |
+
+自定义机制（`query_types`，rag_config.json）：
+
+| 环节 | 说明 |
+|------|------|
+| 存储 | `rag_config.json` 的 `query_types` 字典；**同 key 覆盖内置，新增 key 即新增场景** |
+| Web 管理 | 配置页查询类型区 CRUD（`/api/config/query_types`），内置类型不可删除，自定义类型可增删改 |
+| 场景结构 | `{key: {label, example, rules: {entities, attrs, rel}, built_in}}`，rules 三键对应三槽位填写规则 |
+| 注入链路 | `_get_all_query_types()` 合并内置+自定义 → `_build_type_reference()` 渲染进第一轮决策 system prompt 的「查询类型参考」节——**LLM 不需要声明类型，只需参照最匹配场景的规则填槽** |
+
+设计边界：
+
+- 场景只约束"怎么填槽"，**不改变执行管线**——组合展开器对全部场景一视同仁地做三层切片
+- 场景增删 = 配置级变更，随时可做；三槽位骨架变更 = 架构级变更，需动作格式/校验器/展开器联动
+- 场景化收益以 opposition 为例：无场景约束时 LLM 倾向把对立面塞进 entities 导致展开爆炸；场景规则将其收敛为"主体 1 + 对立面 2（attrs）+ rel 固定"，切片数确定
+- 实时类需求当前走 `type="search"` 独立动作通道；如需"实时查询"场景化（场景内混合 rag/search 通道），属用户自定义场景的演进方向
 
 ---
 
@@ -185,33 +237,28 @@ rag-assistant/
 
 ### 3.1 决策循环 — `agent.py`
 
-核心是 `_decide_with_retry()` 方法，实现 **LLM 决策 → 解析 → 校验 → 自修正** 闭环。
-第一轮决策（`_build_first_pass_messages`）**不传完整历史对话**，仅传压缩摘要作为 system context，避免上一轮查询 entities 泄漏到当前决策：
+核心是 `chat()` → `_decide_with_retry()` 的**两阶段决策 + 动作校验循环**。
+
+**两阶段设计**：
 
 ```
-用户输入
-  ↓
-memory.append_short_term()           # 写入用户输入
-  ↓
-_decide_with_retry(message, max_retries=2)
-  ↓
-_build_first_pass_messages(message)
-  ├─ system prompt（含动作格式说明）
-  ├─ 压缩摘要作为 System context（【历史对话，仅作参考】）
-  ├─ 用户画像提示（prompt_manager.build_persona_context()）
-  └─ 当前消息作为 user message
-  ↓
-LLM 首次推理
-  ↓
-_parse_action(reply)                 # 状态机解析 <<ACTION ...>>
-  ├─ (None, None) → 直接聊天回复
-  ├─ (None, "错误原因") → 追加到 messages → LLM 修正重试（最多 2 次）
-  └─ ({...}, None) → _validate_action()
-       ↓ 拒绝同上 → LLM 修正重试
-       ↓ 通过 → 执行
-  ↓
-2 次重试耗尽 → 清上下文，全新 prompt 重新回答（不污染上下文）
+阶段 1（模式判定）：单次 LLM 调用，不进循环
+  ├─ 显式 <<ACTION type="chat">>（或旧版无动作标记）→ chat 模式，直接返回
+  └─ 解析出 query/search/import 或格式错误 → 进入阶段 2
+阶段 2（动作校验循环 _action_validation_loop）：max_retries=5
+  ├─ LLM 一旦进入动作模式，必须在重试中保持动作模式
+  │   ——不允许通过"不输出 <<ACTION>>"逃逸校验，逃逸按修正提醒强制回正
+  ├─ 解析错误 / 校验拒绝 → 以【修正提醒】反馈给 LLM 重试
+  └─ 5 次耗尽 → 禁止 LLM 自由回答（防止捏造引用），返回固定提示"请重新表述你的问题"
 ```
+
+**第一轮决策消息构建**（`_build_first_pass_messages`，不传完整历史对话）：
+
+1. system prompt（动作格式 + 查询类型参考场景规则，见 §1.4）
+2. 上一轮问题/回答原文（`_get_previous_turns()`，供追问时 entities/attrs/evidence 三源引用）
+3. 压缩摘要（标注"其中的概念/关键词不得用于当前问题的 entities/attrs"，防历史泄漏）
+4. 用户画像提示（prompt_manager.build_persona_context()）
+5. 当前消息
 
 #### _parse_action — 状态机解析器
 
@@ -219,42 +266,53 @@ _parse_action(reply)                 # 状态机解析 <<ACTION ...>>
 
 1. **Windows 路径兼容**：`C:\Users\...` 中的反斜杠不被当作转义前缀，`\U` 不被解释为 Unicode 序列
 2. **文件名含引号**：仅 `\"` 和 `\\` 视为转义，其他 `\X` 保持字面量
+3. **格式错误捕获**：`<action>`、`<<action>>` 等非标准写法返回错误原因进入修正循环，不静默丢弃
 
 返回格式：
-- `(None, None)` — 无动作标记，正常聊天
+- `(None, None)` — 无动作标记（chat 模式）
 - `(None, "原因")` — 有 `<<ACTION` 但格式错误
 - `({...}, None)` — 解析成功
 
-**动作格式校验**：校验 `type` 是否 query/search/import，`entities`/`attrs` 非空，`kb` 必须用户提及，`path` 必须存在等。
+#### _validate_action — 动作校验
 
-#### 组合查询 — 穷举展开
+type 必须是 `query / search / import / chat`；chat 无需额外校验，其余逐类校验：
 
-当 LLM 输出 `type="query"` 时触发组合查询。v0.9.0 改进：rel 时 entities 两两配对（itertools.combinations）而非全拼，排除 attrs 中的比较意图词：
+| 类型 | 校验项 |
+|------|--------|
+| `query` | entities/attrs 必填且各为**单概念**（禁 `/`、`\|`、`、`、`·` 拼接分隔符）；**evidence 必填**（见下）；kb 若填必须为用户原话提及的名称 |
+| `import` | **关键词门禁**：用户没说导入/入库等，直接拒绝 import 指令；path 非 MANIFEST 时必须存在（支持逗号分隔多路径）；kb 必须用户原话提及**且真实存在**（查 list_kbs） |
+| `search` | query 必填 |
+
+**evidence 原文锚定校验**：
+
+- 格式：JSON 字典，key 与 entities/attrs 中的写法**精确一致**（LLM 多塞的额外 key 自动忽略），value 必须是**原文单个连续子串**（禁拼接分隔符，尾部省略号自动清洗）
+- 三源校验：value 须在**当前消息 / 上一轮问题 / 上一轮回答**之一中存在
+- 语义二次判断：硬编码校验不通过且 `nli.output_enabled` 开启时，走 NLI `verify(key, value)`（key/value 互含子串自动通过，否则模型判断），降低错误拒绝率
+- 拒绝信息附带 key 所在源的**字符级切片定位参考**（前后 30/80 字符），引导 LLM 对照原文修正
+
+#### 组合查询 — 三层切片展开
+
+当 LLM 输出 `type="query"` 时触发。展开器做三层切片（示例为 opposition 场景填槽）：
 
 ```python
 # LLM 输出示例
-<<ACTION type="query" entities="三个代表重要思想,老子无为而治"
-                     attrs="核心观点,相同点,不同点"
-                     rel="思想渊源比较">>
+<<ACTION type="query" entities="AI" attrs="迎合,独立思考" rel="对比"
+          evidence='{"AI":"AI","迎合":"顺着倾向回答","独立思考":"独立思考"}'>>
 
-# 展开逻辑：
-# 1. 每个 entity × 每个 attr（单独）
-# 2. 所有 entities 联合 × 每个 attr（全拼，覆盖非对比场景）
-# 3. 如果有 rel: itertools.combinations 两两配对 × attrs × rel
+# 三层切片：
 slices = [
-    "三个代表重要思想 核心观点",          # 单 entity × attr
-    "三个代表重要思想 不同点",
-    "老子无为而治 核心观点",
-    "老子无为而治 不同点",
-    "三个代表重要思想 老子无为而治 核心观点",  # 联合 × attr
-    "三个代表重要思想 老子无为而治 不同点",
-    "三个代表重要思想 老子无为而治 核心观点 思想渊源比较",  # 两两配对 × attr × rel
-    "三个代表重要思想 老子无为而治 不同点 思想渊源比较",
-    "三个代表重要思想 老子无为而治 思想渊源比较",  # 两两配对 × rel
+    "AI",                          # 第一层：entity 单独（实体宽泛检索）
+    "AI 迎合",                      # 第二层：entity × attr（事实块检索）
+    "AI 独立思考",
+    "AI 迎合 独立思考 对比",          # 第三层：rel 语义切片（单实体 → attrs 两两配对 + rel）
 ]
+# rel 语义层的两种形态：
+#   多实体（≥2）：itertools.combinations 两两配对 → "e1 e2 rel" / "e1 e2 attr rel"
+#   单实体：attrs 两两配对 → "e a1 a2 rel"
+# 过滤：比较意图词（异同/区别/对比…）与疑问词（为什么/怎么/如何…）从 attrs 剔除，不自动设 rel
 ```
 
-组合切片展开后各片独立走 `rag.query()` 完整流程，结果按 SM3 内容哈希去重（`hashlib.new('sm3', ...)`）后合并为单一上下文，交给 LLM 生成最终回答。
+切片展开后各片独立走 `rag.query(slice, include_header=True)` 完整流程，结果按 SM3 内容哈希去重合并；同时回取各命中文档的**源文档头部块**（`headers`），以【文档: 源文件】形式拼在语义检索结果之前，补足头部上下文。
 
 **get_embeddings() 缓存优化**（v0.8.5）：组合查询共享同一个嵌入模型实例，避免每片重复加载（18 次 → 1 次）。
 
@@ -285,6 +343,9 @@ slices = [
 | `/api/llm/models?backend=xxx` | GET | 扫描模型列表 |
 | `/api/llm/test` | GET | 测试 LLM 连接 |
 | `/api/config/llm` | GET/POST | 获取/更新 LLM 配置（backend/model/timeout/maxtokens） |
+| `/api/config/search` | GET/POST | 联网搜索配置 |
+| `/api/config/memory` | GET/POST | 记忆参数配置 |
+| `/api/config/query_types` | GET/POST | 查询类型场景 CRUD（内置类型不可删除，自定义同 key 覆盖，见 §1.4） |
 | `/api/chat` | GET/POST | Agent 决策循环聊天 |
 | `/api/chat/history` | GET | 聊天历史持久化（v0.8.4） |
 | `/api/agent/query` | GET/POST | 直接 RAG 查询（绕过 Agent 决策） |
@@ -295,6 +356,9 @@ slices = [
 | `/api/memory/compress` | GET/POST | 压缩上下文 |
 | `/api/memory/clear-context` | GET/POST | 清除上下文 |
 | `/api/memory/inject` | POST | 注入系统通知 |
+| `/api/session/new` `/api/session/list` | GET/POST | 会话新建 / 列表（含归档会话与首条消息预览） |
+| `/api/session/switch` `/api/session/archive` | GET/POST | 会话切换 / 归档（压缩摘要同步归档） |
+| `/api/session/restore` `/api/session/delete` | GET/POST | 会话恢复 / 永久删除 |
 | `/api/search/toggle` | POST | 联网搜索开关 |
 | `/api/availability-status` | GET | 模型下载探测状态（v0.9.0） |
 | `/api/plugins` | GET | 插件列表（v2.1.0） |
@@ -327,14 +391,14 @@ slices = [
 将 local-rag-builder 的技能接口包装为 Agent 可调用的形式：
 
 ```python
-rag.query(question, kb_name=None, k=5, score_threshold=0.0)
-  → retrieve_context(question, kb_name, k, score_threshold)
+rag.query(question, kb_name=None, include_header=False, ...)
+  → retrieve_context(question, kb_name, ...)
     → route_query(question)                 # 路由：两级（关键词 + 嵌入 × KB签名）
       → retrieve_documents(question, kb)    # 检索：取 top-K chunk（HNSW 自动修复）
         → reranker.rerank(docs)             # 可选：精排（model/rule/hybrid）
       → nli_classifier.classify(docs)       # 可选：NLI 三向标注
       → build_context(docs)                 # 构建上下文（含 NLI 标签）
-  → return {context, docs, kb, has_context}
+  → return {context, docs, kb, headers, has_context}
 ```
 
 ### 3.5 搜索模块 — `search.py`
@@ -354,6 +418,7 @@ v0.8.0 新增：LLM 回答后校验引用编号。`_second_pass()` 中的引用�
 - LLM 回答后提取所有 `[n]` 引用，检查编号是否在资料段落范围内
 - 不存在的段落编号 → 告警追加到回答尾部
 - 无引用 → 记录日志（不作为错误）
+- 插件注入内容走**来源标记引用**：上下文含【联网搜索】等插件标记时，追加引用规则——引用插件信息标注 `[插件名称]`，引用知识库信息继续用 `[n]` 段落编号
 
 ### 3.7 KB 暂停写入
 
@@ -394,6 +459,46 @@ v0.9.0 新增，cross-encoder 3-class 模型（contradiction / neutral / entailm
 
 标签输出格式：`[NLI: entailment, 92%]`
 在 reranker 之后（reranker 开时）或向量召回之后（reranker 关时）运行。
+
+除管道内三向分类外，NLI 分类器还通过 `verify(key, value)` 方法承担 **evidence 语义二次判断**（agent 动作校验共享 `get_nli_classifier()` 单例，见 §3.1）：硬编码原文校验不通过时判断 key 与 value 的语义一致性，降低错误拒绝率。
+
+---
+
+### 3.10 Ranker 后插件点位 — before_response 旁路扩展（已实现）
+
+定位：`input_return` 类型插件的执行时机，位于**完整检索管道（含 reranker）之后、LLM 综合回答之前**。相对 ranker 而言，这是一个"检索已定、精排已定"之后的旁路注入点——锦上添花，不影响主体功能完整性。
+
+**管道位置（agent.py `chat()`，实测代码锚点 L320-344）**：
+
+```
+用户查询 → [组合展开器] 多切片
+  → 每片独立: route → retrieve → rerank → NLI → build_context   （主体引擎管道）
+  → [SM3 去重合并] 多片结果按内容哈希去重
+  → [插件点位·input_return]  ← Ranker 后点位（run_before_response）
+  │     插件读取 question / rag_context / thinking 等裁剪输入
+  │     产出补充内容（如联网搜索结果）
+  → [合并] 注入内容以分隔线 + "## 插件补充信息" 附加到 context（不改写主体管道产出）
+  → [LLM 综合回答] _second_pass（3 插槽 prompt，含插件来源引用规则）
+  → [插件点位·input_output] 回答后副作用（run_after_response）
+```
+
+**与 ranker 的相对位置**：主体引擎管道内部（route → retrieve → rerank → NLI → build_context）**没有任何插件点位，也不应该有**——管道内每一步都是主体功能，扩展点开在管道内部等于允许外部代码介入主体执行路径。插件点位开在整条管道**完成后**：插件只能消费管道的最终产出（rag_context），不能触达路由/检索/精排的任何中间环节。
+
+**稳定性契约（代码事实）**：
+
+| 契约 | 代码证据 |
+|------|---------|
+| 失败透传 | `run_before_response` 整体 try/except，异常仅 warning 日志，主流程照走（agent.py L325-336）；单插件失败由 `PluginManager._safe_execute` 隔离，不影响其他插件 |
+| 只消费不改源 | 插件输入按 `input_fields` 从 6 字段池裁剪；注入内容**附加**到 context 尾部（`existing + "\n\n---\n\n## 插件补充信息\n\n" + injected`），不修改、不覆盖主体管道产出（agent.py L338-344） |
+| 五道防线 | 信息隔离 / 文件沙箱 / 超时熔断（per-plugin timeout）/ 输出校验 / SM3 签名校验（`_verify_signature`），与 §6.6 同一套 |
+| type 硬约束 | 插件 type 枚举硬校验，仅允许 `input_return` / `input_output`（manager.py L152-153），非注册点位的执行路径不存在 |
+| 主体变更 = 架构级 | 插件点位只增不改；主体（路由/检索/精排）要改必须是架构级变更，不允许补丁式侵入 |
+
+**设计理据 — 为什么点位在 ranker 之后**：
+
+- 检索与精排完成后，任何增强（外部检索补召回、行情查询、结果补充）都是锦上添花：不影响前面任何环节的正确性，也不因自身失败拖垮主体
+- 在一个运行系统中，部分需求扩张导致的例如召回率等参数不理想时，正确动作是**旁路补足**（web_search 联网搜索插件就是这一原则的活实例：知识库覆盖不到的实时内容，由插件在管道完成后注入），而不是为指标回头改主体——哪怕保持低召回的稳定性，也不能引发系统崩坏级的不稳定
+- 系统越大越难发现"蚁穴"和"蝴蝶翅膀"在哪里——这不是简单的试错问题，不是积累经验的问题，这是人类和 AI 共同存在的**注意力机制**的局限。用点位隔离代替试错，是稳定运行的重要前提
 
 ---
 
@@ -471,19 +576,19 @@ personality[dim] = clamp(new_val, 0.0, 1.0)
 ```python
 chat(message)
   ↓
-append_short_term("default", message)    # 写入用户输入
+append_short_term(session_id, "user", message)   # 写入用户输入
   ↓
-_build_first_pass_messages(message)      # 第一轮决策：不传完整历史
-  ├─ system prompt（含动作格式说明）
-  ├─ 压缩摘要作为 system context（【历史对话，仅作参考】）
-  ├─ 用户画像提示（方案 C：prompt_manager.build_persona_prompt()）
-  └─ 当前消息作为 user message
+_get_previous_turns()                     # 取上一轮问题/回答（evidence 三源引用）
   ↓
-LLM 决策（query/search/import/直接回答）
+_decide_with_retry(message, max_retries=5)  # 两阶段：模式判定 → 动作校验循环
+  ├─ 第一轮消息：system prompt（动作格式 + 查询类型参考场景）
+  │   + 上一轮问答原文 + 压缩摘要（概念禁止用作 entities/attrs）+ 画像
+  └─ LLM 决策（query/search/import/chat）
   ↓
-执行动作 → _second_pass(message, context, action)  # 第二轮：带上下文 + 历史
+执行动作 → _second_pass(message, context, action)  # 第二轮：带上下文 + 历史（跳过 reasoning）
   ↓
-append_short_term("default", reply)      # 写入助手回复（自动剥离 <<ACTION>> 标签）
+append_short_term(session_id, "assistant"/"reasoning", ...)
+                                          # 写入助手回复/推理（自动剥离 <<ACTION>> 标签）
 record_habit(message, is_rag, ..., kb)   # 记录习惯 + 语言分析 + OCEAN 更新
 ↓ 如果检索结果为空
 record_gap(query, kb)                    # 记录知识缺口
@@ -492,6 +597,19 @@ record_gap(query, kb)                    # 记录知识缺口
 **历史隔离**（v0.8.0）：第一轮决策不传完整历史对话，仅传压缩摘要作为 system context。第二轮 `_second_pass()` 仍携带带 `[历史对话]` 前缀的历史消息，保证跨轮追问的上下文连贯性。
 
 **ACTION 剥离**（v0.8.0）：写入记忆时自动使用 `re.sub(r'<{1,2}\s*ACTION\s+.*?>{1,2}', '', content, flags=re.DOTALL|re.IGNORECASE)` 剥离内部指令标签。
+
+**记忆角色**：user / assistant / reasoning 三种角色写入短期记忆；reasoning 单独记录，第二轮历史消息构建时跳过（防止连续 role 破坏消息序列）。
+
+### 4.6 会话管理
+
+| 方法 | 功能 |
+|------|------|
+| `new_session()` | 新建会话；活跃会话数超 `memory.max_sessions`（默认 20）自动归档最旧的非活跃会话 |
+| `list_sessions()` | 列出活跃 + 已归档会话（含首条用户消息预览 60 字符），按创建时间倒序 |
+| `archive_session()` | 会话移入 `archives/sessions/`，压缩摘要同步移入 `archives/memory/` |
+| `delete_session()` | 永久删除会话文件（含归档目录与压缩记忆） |
+
+对应 Web 端点：`/api/session/new|list|switch|archive|restore|delete`。
 
 ---
 
@@ -530,23 +648,31 @@ record_gap(query, kb)                    # 记录知识缺口
 | `config` | `load_config / save_config` | 配置持久化 + 模型路径自动修正 |
 | `prompt_manager` | `build_second_pass_prompt` | 3 插槽 prompt 构建 |
 | `prompt_manager` | `build_persona_prompt` | 用户画像注入 |
-| `nli_classifier` | `NLIClassifier.classify` | NLI 三向分类 |
+| `nli_classifier` | `NLIClassifier.classify` / `NLIClassifier.verify` | NLI 三向分类 / evidence 语义二次判断（§3.1） |
 
 ### 5.3 Agent 动作协议（LLM ↔ Agent 通信）
 
 LLM 在回复中嵌入 `<<ACTION ...>>` 标记控制 Agent 行为：
 
 ```python
-<<ACTION type="query" entities="实体1,实体2" attrs="属性A,属性B" rel="关系词" kb="知识库名">>
+<<ACTION type="query" entities="实体1,实体2" attrs="属性A,属性B" rel="关系词"
+          evidence='{"词":"原文出处"}' kb="知识库名（可选，必须用户原话提及）">>
 <<ACTION type="search" query="搜索词">>
 <<ACTION type="import" content="入库的完整文本内容">
 <<ACTION type="import" path="MANIFEST">        # 批量导入所有待入库文件
+<<ACTION type="chat">>                          # 闲聊/直接回答也必须显式声明
 ```
 
-**LLM 分词语义规则**（v0.9.0 重写）：
-- `entities`：取主体/名词。问题中涉及的核心事物、人物、概念
-- `attrs`：取目的。用户想查询的目标/用途/对象。注意排除比较意图词（异同、区别、对比等）
-- `rel`：取行为。实体间的动作/关系。当有多个 entities 且存在动作关系时填写
+- **不使用 question 参数**（不会生效），成分一律标注进 entities/attrs
+- 所有回复都必须显式声明动作类型（包括纯聊天），系统通过标记决定处理方式
+
+**LLM 分词语义规则**（三槽位，v0.9.0 重写）：
+- `entities`：取主体/名词。问题中涉及的核心事物、人物、概念，每个 entity 必须是单个概念（禁拼接分隔符）
+- `attrs`：取目的/限定域。用户想查询的目标/用途/对象，可以是复合短语；排除比较意图词（异同、区别、对比等，归 rel）与疑问词（为什么/怎么/如何，非搜索维度）
+- `rel`：取行为。实体间的动作/关系，填一个最贴切的词（如"对比"）
+- `evidence`：**每个 entity 和 attr 都必须提供原文出处**。key 与 entities/attrs 写法精确一致，value 是原文单个连续子串，可来自当前消息/上一轮问题/上一轮回答三源；entity/attr 可对原文凝缩提炼，但提炼词须在原文有对应短语
+
+**场景层（可配置的前置分类）**：槽位怎么填由查询类型场景约束——内置 4 类（fact/compare/opposition/analysis）+ 用户自定义（同 key 覆盖），LLM 不声明类型，参照最匹配场景的规则填槽。详见 §1.4。
 
 ### 5.4 Prompt 3 插槽架构 + 自定义预设 — `prompt_manager.py`
 
@@ -573,38 +699,34 @@ web_ui.py → POST /api/chat
   ↓
 agent.chat(message)
   ↓
-记忆写入 → _compress_if_needed()
+记忆写入 → _get_previous_turns()（上一轮问答，供 evidence 三源引用）→ _compress_if_needed()
   ↓
-_build_first_pass_messages(message)
-  ├─ system prompt（含 entities/attrs/rel 格式说明）
-  ├─ 压缩摘要
-  ├─ 用户画像提示
-  └─ user message
-  ↓
-LLM 首次推理
+_decide_with_retry（两阶段：模式判定单次调用 → 动作校验循环 ≤5 次，禁止逃逸）
+  ↓ 第一轮消息：system prompt（动作格式 + 查询类型参考场景规则）
+  │            + 上一轮问答原文 + 压缩摘要（概念禁止用作 entities/attrs）+ 画像 + 当前消息
   ↓
 _parse_action(reply)
-  ├─ 无 <<ACTION → 直接聊天回复 ✅
-  └─ 解析成功 → _validate_action()
+  ├─ chat（显式 type="chat" 或无标记）→ 直接聊天回复 ✅
+  └─ 解析成功/错误 → 阶段 2 动作校验循环 → _validate_action()
        ↓
        ↓ 通过
        ↓
        → type == "query"
          → _exec_query(entities, attrs, rel, kb)
-           → 展开组合切片（单×全×两两配对）
+           → 三层切片展开（entity 单独 / entity×attr / rel 语义两两配对）
            → for each slice:
-                rag.query(slice, kb_name)
+                rag.query(slice, kb_name, include_header=True)
                   → retrieve_context(slice, ...)
                     → route_query → retrieve_documents → reranker → NLI → build_context
-           → SM3 去重合并
-           → [插件] pm.run_before_response() — input_return 插件注入上下文
+           → SM3 去重合并 + 源文档头部块回填
+           → [插件·Ranker 后点位] pm.run_before_response() — input_return 插件注入上下文（见 §3.10）
            → return {context, docs, kb}
          → _second_pass(message, context, action)
-           → build_second_pass_prompt(context, question, kb)  # 3 插槽
+           → build_second_pass_prompt(context, question, kb)  # 3 插槽（含插件来源引用规则）
            → LLM 基于上下文生成回答
            → [插件] pm.run_after_response() — input_output 插件副作用
            → 引用门禁校验
-           → 记忆写入 → record_habit() → record_gap()
+           → 记忆写入（user/assistant/reasoning）→ record_habit() → record_gap()
        → type == "search"
          → search.search(query)
          → _second_pass(...)
@@ -686,15 +808,16 @@ chunks 输出
 **插件在智能体生命周期中的位置：**
 
 ```
-用户提问 → LLM 决策 → RAG 检索 → [input_return 插件注入] → LLM 生成回答 → [input_output 插件副作用] → 返回
-                                  ↑ 回答前注入上下文                        ↑ 回答后执行副作用
+用户提问 → LLM 决策 → RAG 检索管道（route → retrieve → rerank → NLI → build_context，无插件点位）
+        → [input_return 插件注入·Ranker 后点位] → LLM 生成回答 → [input_output 插件副作用] → 返回
+                                  ↑ 检索完成后、回答前注入                        ↑ 回答后执行副作用
 ```
 
-**两种插件类型：**
+**两种插件类型（已实现）：**
 
 | 类型 | 时机 | 用途 | 示例 |
 |------|------|------|------|
-| `input_return` | 回答生成**前** | 结果注入 LLM 上下文 | 联网搜索补充、股票行情查询 |
+| `input_return` | 检索管道（含 rerank）完成后、回答生成**前** | 结果注入 LLM 上下文 | 联网搜索补充（web_search）、网络 API 大模型（web_llm） |
 | `input_output` | 回答生成**后** | 副作用（不注入上下文） | 日志记录、结果缓存 |
 
 **6 字段池（智能体裁剪传递）：**
@@ -889,6 +1012,7 @@ numpy>=1.24                       # 向量余弦相似度计算
 
 | 版本 | 新增/变更要点 |
 |------|-------------|
+| 文档同步 2026-09-04 | 对照代码 v2.4.1 全文复核：决策循环两阶段重写（模式判定 + 动作校验循环 max_retries=5 + 禁止逃逸）、evidence 原文锚定校验（三源 + NLI verify）、查询类型场景层（§1.4，v1.0.1 引入 analysis、后续修复长期存在）、Ranker 后插件点位解析（§3.10，before_response 点位实测锚定）、会话管理补录（§4.6）、Web 端点表补全 |
 | v2.1.0b2 | AI 插件生成器（二阶段 LLM + 7 阶段校验管道）；web_llm 多 profile 配置系统；setup.bat HNSW 修复 |
 | v2.1.0b1 | 智能体插件系统（PluginBase + PluginManager + 5 道防线）；内置联网搜索插件；插件 Web UI 管理面板 |
 | v2.0.0b1 | 1.x → 2.x HNSW 索引引擎更换；Chroma 适配器重构；setup.bat 全量重建提示 |
