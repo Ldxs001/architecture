@@ -29,6 +29,12 @@ scale ≈ 内容盒/超宽右缘（标定：超宽 1185px→×0.667，正文 12p
      ——zoom 须在 emulate_media('print') 后执行：screen 与 print 布局宽度
      不同（pre→pre-wrap 生效），screen 态测量会误判（曾致 37 棵误缩/漏缩）。
 实测：正文 12.0pt / h1 20.4pt / toc 11.0pt / code 9.5pt，零超宽元素，无全局缩放。
+目录页码列规范同步（arch-v1.1.5，同母书/排版书 v1.2.0 统一规范）：
+① MERGE_GAP=23pt 跨行续行合并 + 纯数字页码行剔除（续行碎片曾误命中正文标题）；
+② 顺序锚定 miss 后全局回退兜底；③ 页码基线 548→538 / 虚线终点 532→521 /
+link_rect 右缘 556→543——三位数页码右缘旧值穿 .toc 右边框（x=543.4）4.6pt。
+三本姊妹书自此共用同一套目录/排版规范（STYLE_GUIDE），差异仅剩各书配置
+（书名/版本字/字体族选择/字号阈值按书标定）。
 
 产物：book_print.pdf（封面独立 PDF 页 + 正文思源字形 Type3 矢量嵌入，
 无任何微软版权字体分发）
@@ -213,7 +219,7 @@ def make_cover_png():
     center('七套核心系统的工程实现', f_sub2, 1381, SUB2)
     draw.line([(W / 2 - 360, 1600), (W / 2 + 360, 1600)], fill=(201, 164, 92, 140), width=6)
     center('wUwproject · CC BY-SA 4.0 · 免费公开', f_meta, 2659, META)
-    center('arch-v1.1.4 · 2026 年 9 月', f_ver, 2841, VER)
+    center('arch-v1.1.5 · 2026 年 9 月', f_ver, 2841, VER)
     note = '本书文字（含书名、标题、正文、图表标注）使用思源黑体（Source Han Sans SC）渲染，字体采用 SIL OFL 1.1 开源许可。'
     nw = draw.textlength(note, font=f_note)
     draw.text(((W - nw) / 2, 3241), note, font=f_note, fill=NOTE)
@@ -401,19 +407,40 @@ def add_toc_dots(path, h1_page):
         print('目录点线：未找到正文起始页，跳过')
         return
     # 1) 提取目录行（目录页 = 1..h1_page-1）
+    # 目录页码列规范（v1.2.0 统一规范移植，同母书/排版书）：
+    # ① 跨行标题合并（MERGE_GAP=23pt）——超长目录条目折行后每行独立成 line，
+    #    续行碎片会被误当独立条目命中正文标题；按 y 近邻合并后 text 为完整标题。
+    # ② 剔除纯数字行（目录行右侧页码列，非标题）。
+    # ③ 三数值收紧：页码右对齐基线 538 / 虚线终点 521 / link_rect 右缘 543
+    #    （.toc 容器装饰右边框 x=543.4，旧值 548/532/556 使三位数页码穿框 4.6pt）。
+    # ④ 顺序锚定降级为首选起点，miss 后全局回退兜底（防目录序与正文物理序非单调）。
+    MERGE_GAP = 23.0
     rows = []  # (page_idx, y_center, x0, x1, text)
     for pi in range(1, h1_page):
+        lines = []
         d = doc[pi].get_text('dict')
         for b in d['blocks']:
             if 'lines' not in b:
                 continue
             for line in b['lines']:
                 s = ''.join(sp['text'] for sp in line['spans']).strip()
-                if s:
-                    y = (line['bbox'][1] + line['bbox'][3]) / 2
-                    x0 = line['bbox'][0]
-                    x1 = line['bbox'][2]
-                    rows.append((pi, y, x0, x1, s))
+                if not s:
+                    continue
+                y = (line['bbox'][1] + line['bbox'][3]) / 2
+                lines.append((y, line['bbox'][0], line['bbox'][2], s))
+        lines.sort(key=lambda t: t[0])
+        merged = []
+        for y, x0, x1, s in lines:
+            if s.isdigit():
+                continue  # 页码列数字行，非标题
+            if merged and y - merged[-1][0] < MERGE_GAP:
+                # 跨行续行：并入上一条（text 拼接、x1 取续行、y 取首行）
+                py, px0, px1, pt = merged[-1]
+                merged[-1] = (py, px0, max(px1, x1), pt + s)
+            else:
+                merged.append((y, x0, x1, s))
+        for y, x0, x1, s in merged:
+            rows.append((pi, y, x0, x1, s))
     # 2) 正文标题匹配（大字号标题行 + 顺序锚定）
     # 阈值 >= 15：正文 12pt 排除、h2 16.8pt / h1 20.4pt 命中（自然字号标定，
     # arch-v1.1.3；v1.1.2 缩放态正文 8pt 用 >=12 即可，现随字号重校准）
@@ -445,21 +472,40 @@ def add_toc_dots(path, h1_page):
                 target = pj
                 break
         if target is None:
+            # 全局回退：顺序锚定漏掉（目录序与物理序非单调）时整域重搜
+            for pj in range(h1_page, total):
+                d = doc[pj].get_text('dict')
+                hit = False
+                for b in d['blocks']:
+                    if 'lines' not in b:
+                        continue
+                    for line in b['lines']:
+                        ltext = ''.join(sp['text'] for sp in line['spans'])
+                        max_size = max((sp['size'] for sp in line['spans']), default=0)
+                        if max_size >= 15 and ltext.replace(' ', '').replace('\u3000', '').startswith(key):
+                            hit = True
+                            break
+                    if hit:
+                        break
+                if hit:
+                    target = pj
+                    break
+        if target is None:
             continue
         last_target = target
         page = doc[pi]
-        # 虚线：标题右端 → 页码左
+        # 虚线：标题右端 → 页码左 6pt 处，且终点 ≤ 521（不入页码列、距右边框 ≥22pt）
         dx1 = min(x1 + 6, 400)
-        page.draw_line((dx1, y), (532, y), color=gray, width=0.7,
+        page.draw_line((dx1, y), (521, y), color=gray, width=0.7,
                        dashes='[3 3] 0')
-        # 页码右对齐；版权页 = 1
+        # 页码右对齐；版权页 = 1。基线 x=538 在 .toc 右边框 543.4 内留 5.4pt 安全间距
         num = str(target - h1_page + 1)
         tw = font.text_length(num, fontsize=8.5)
-        px = 548 - tw
+        px = 538 - tw
         page.insert_text((px, y + 3), num, fontname='helv',
                          fontsize=8.5, color=(0.45, 0.45, 0.45))
-        # 目录行链接（点击跳转目标页顶部）
-        link_rect = fitz.Rect(x0 - 2, y - 8, 556, y + 8)
+        # 目录行链接（点击跳转目标页顶部）—— 右缘 543 贴合 .toc 边框不溢出
+        link_rect = fitz.Rect(x0 - 2, y - 8, 543, y + 8)
         page.insert_link({'kind': fitz.LINK_GOTO, 'from': link_rect,
                           'page': target, 'to': fitz.Point(0, 0)})
         # 书签：l1 = x0 < 65（部/篇/附录），l2 = 缩进小节
