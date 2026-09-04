@@ -20,7 +20,7 @@ See https://creativecommons.org/licenses/by-sa/4.0/ for details.
 | 方式 | 入口 |
 |------|------|
 | **在线阅读整本册子** | GitHub Pages：<https://ldxs001.github.io/architecture/> |
-| **下载 PDF / HTML / EPUB** | 发行版 **arch-v1.1.5**（[Gitee](https://gitee.com/wUwproject/architecture/releases/tag/arch-v1.1.5) / [GitHub](https://github.com/Ldxs001/architecture/releases/tag/arch-v1.1.5)，含 PDF 打印版） |
+| **下载 PDF / HTML / EPUB** | 发行版 **arch-v1.2.0**（[Gitee](https://gitee.com/wUwproject/architecture/releases/tag/arch-v1.2.0) / [GitHub](https://github.com/Ldxs001/architecture/releases/tag/arch-v1.2.0)，含 PDF 打印版） |
 | **册子源码（Markdown）** | 本目录 `book/`（frontmatter：版权页 / 导读 / 附录 A / 附录 B） |
 | **入书规范** | 仓库根 [`STRUCTURE_GUIDE.md`](../STRUCTURE_GUIDE.md)（单篇规范/清洗/同步/字数/版本规则）；发行说明 [`成册说明_架构解析.md`](../成册说明_架构解析.md) |
 | **构建管线** | `build/`（`python build.py` 一键构建，复用母书管线） |
@@ -32,10 +32,10 @@ See https://creativecommons.org/licenses/by-sa/4.0/ for details.
 | 版权页 | `frontmatter/00_版权页.md` | 版本、协议、署名 |
 | 导读 | `frontmatter/00_导读.md` | 七套系统 + 演进收束篇的阅读路径 |
 | 正文八篇 | 仓库根目录 `*-architecture.md` | skill-standardization / semantic-split / activity-duration-estimation / rag-assistant / structured-writer（成熟 5 篇）+ orchestrator / silprespec-orchestrator（实验性 2 篇）+ 演进收束篇《技能编排器到 agent 编排器——编排对象迁移与"圈"的 z 轴》（架构 08，非系统） |
-| 附录 A | `frontmatter/附录A_统一术语表.md` | 统一术语表 |
-| 附录 B | `frontmatter/附录B_运行速查.md` | 运行速查 |
+| 附录 A | `appendix/统一术语表.md` | 统一术语表 |
+| 附录 B | `appendix/运行速查.md` | 运行速查 |
 
-全册约 5.0 万字（arch-v1.1.5）。
+全册约 4.8 万字（arch-v1.2.0）。
 
 ## 目录结构
 

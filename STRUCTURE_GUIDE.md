@@ -52,13 +52,13 @@ Copyright (c) 2026 wUwproject
 | `book/build/assemble.py` | STRUCTURE 列表注册新篇（`("顶层文档.md", "架构 NN · 工具名", "NN｜标题")`），顺序按正文排布 |
 | `book/frontmatter/00_版权页.md` | 规模/章数行、版本历史追加一条（版本号 + 变更 + **全书 N 章**，章数必改） |
 | `book/frontmatter/00_导读.md` | 映射表加行（架构篇/系统版本/对应母书篇目/落地原则）；"七系统关系总览"若涉及分层结构同步 |
-| `book/frontmatter/附录A_统一术语表.md` | 术语若有新增/变更同步 |
-| `book/frontmatter/附录B_运行速查.md` | 运行方式若有变更同步 |
+| `book/appendix/统一术语表.md` | 术语若有新增/变更同步 |
+| `book/appendix/运行速查.md` | 运行方式若有变更同步 |
 | 根目录 `README.md` | 姊妹卷段版本/字数；文档列表行（**全部 14 篇都列**，含未入书） |
 | `book/README.md` | 获取表 release tag、规模行、正文八篇/附录说明 |
 | **`index.html`（在线阅读落地页）** | PDF 下载链接 release tag、底部版本/日期（**历史上最易漏**，arch-v1.0.1 教训：内容已入库而 index 停在 arch-v1.0.0，见第七章） |
-| `book/build/make_pdf.py` | 封面版本字（`center('arch-vX.Y.Z · YYYY 年 M 月', …)`） |
-| 全书重建 | `cd book && python build/build.py`（assemble → 全书.md + book.html + book.epub，输出"（12 章）"须与版权页一致）→ `python build/make_pdf.py`（封面 + 打印版 PDF）→ `python build/count_words.py` 取字数 |
+| `book/build/PDF/make_pdf.py` | 封面版本字（`center('arch-vX.Y.Z · YYYY 年 M 月', …)`） |
+| 全书重建 | `cd book && python build/build.py`（assemble → 全书.md + book.html + book.epub，输出"（12 章）"须与版权页一致）→ `python build/PDF/make_pdf.py`（封面 + 打印版 PDF）→ `python build/count_words.py` 取字数 |
 
 ---
 
@@ -80,15 +80,20 @@ Copyright (c) 2026 wUwproject
 
 ## 五、版本号规范（全量维护点）
 
+**族系骨架规范（arch-v1.2.0 固化，与母书/排版书同批统一）**：
+- 版权页结构对齐母书小节式：`## 书名 / ## 作者 / ## 协议（显式声明）/ ## 收录与规模 / ## 版本 / ## 与母书的关系`
+- 版本日志为**一行式书籍口径**：一版一行，说清"这版改了什么、规模变化"；根因分析/几何数值/门禁扫描等工程细节只进 commit / Release notes / 成册说明，**不进书**（书籍修订日志不是更新日志）
+- 附录在 `book/appendix/`（内容名文件），frontmatter 只留前置（导读/版权页）；PDF 管线在 `book/build/PDF/make_pdf.py`（字体与产物随位）——与母书 `book/build/PDF/`、排版书布局一致
+
 **版本规则**：新增入书篇/附录结构变化/章节数变化 → 次版本 +1（arch-v1.0.2 → arch-v1.1.0：新增演进收束篇架构 08，正文 7→8 篇、11→12 章）；纯清洗修正、文档/规范文档新增 → 修订号 +1（arch-v1.0.1 → arch-v1.0.2）。**章数变化与版本号变化必须同时发生。**
 
 | # | 位置 | 内容 | 更新时机 |
 |---|---|---|---|
-| 1 | `book/frontmatter/00_版权页.md` | 版本行 + 版本历史追加条目 | 任何实质变更 |
+| 1 | `book/frontmatter/00_版权页.md` | 版本历史追加一行式条目 | 任何实质变更 |
 | 2 | 根目录 `README.md` | 姊妹卷段 `arch-vX.Y.Z` | 同上 |
 | 3 | `book/README.md` | 获取表 release tag + 规模行 | 同上 |
 | 4 | **`index.html`** | PDF 下载链接 `arch-vX.Y.Z/book_arch-vX.Y.Z.pdf` + 底部版本日期 | 同上（**最易漏**） |
-| 5 | `book/build/make_pdf.py` | PDF 封面版本字 | 同上 |
+| 5 | `book/build/PDF/make_pdf.py` | PDF 封面版本字 | 同上 |
 | 6 | GitHub/Gitee Release | tag `arch-vX.Y.Z` + 附件 | 发布时 |
 
 **三端一致校验**：版权页版本号 == 根 README tag == book/README 获取表 == index.html PDF 链接 == PDF 封面版本字，任一不一致即 FAIL。Release 发行：GitHub/Gitee 双平台 Release（tag `arch-vX.Y.Z`，附件命名 `book_arch-vX.Y.Z.{pdf,html,epub}`）；PDF 附件随内容更新同步替换（Gitee 同名上传为新增，需先删旧）。
@@ -105,7 +110,7 @@ assemble.py（清洗 + 章题重命名 + 拼接）
         → output/架构解析全书.md
         → md2html → output/book.html
         → build_epub → output/book.epub（12 章）
-        │ python build/make_pdf.py（playwright 渲染）
+        │ python build/PDF/make_pdf.py（playwright 渲染）
         ▼
 封面 PNG（300dpi 2480×3508）+ book_print.pdf（封面 + 正文，页码奇右偶左 + 目录点线/书签）
         │ python build/count_words.py

@@ -53,7 +53,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 from playwright.sync_api import sync_playwright
 
 BASE = os.path.dirname(os.path.abspath(__file__))
-SRC = os.path.normpath(os.path.join(BASE, 'output', 'book.html'))
+SRC = os.path.normpath(os.path.join(BASE, '..', 'output', 'book.html'))
 TMP_HTML = os.path.join(BASE, 'book_print.tmp.html')
 BODY_PDF = os.path.join(BASE, 'book_print.body.pdf')
 OUT = os.path.join(BASE, 'book_print.pdf')
@@ -219,7 +219,7 @@ def make_cover_png():
     center('七套核心系统的工程实现', f_sub2, 1381, SUB2)
     draw.line([(W / 2 - 360, 1600), (W / 2 + 360, 1600)], fill=(201, 164, 92, 140), width=6)
     center('wUwproject · CC BY-SA 4.0 · 免费公开', f_meta, 2659, META)
-    center('arch-v1.1.5 · 2026 年 9 月', f_ver, 2841, VER)
+    center('arch-v1.2.0 · 2026 年 9 月', f_ver, 2841, VER)
     note = '本书文字（含书名、标题、正文、图表标注）使用思源黑体（Source Han Sans SC）渲染，字体采用 SIL OFL 1.1 开源许可。'
     nw = draw.textlength(note, font=f_note)
     draw.text(((W - nw) / 2, 3241), note, font=f_note, fill=NOTE)
