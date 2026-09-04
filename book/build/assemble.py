@@ -3,7 +3,7 @@
 《我思故我写 · 架构解析》书稿拼接脚本
 将导读 + 8 篇架构文档拼接为单一书稿 Markdown。
 用法: python assemble.py [输出路径]
-零依赖（标准库）。入书规范参考 Cogito_Scribit STRUCTURE_GUIDE。
+零依赖（标准库）。入书规范参考 Cogito_Scribit/typesetting/STRUCTURE_GUIDE.md（族系转化规范）。
 
 入书清洗（STRUCTURE_GUIDE 去留规则的管线级硬约束，arch-v1.0.1）：
 - 剥 SPDX 头（strip_spdx）

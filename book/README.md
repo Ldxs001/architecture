@@ -22,7 +22,7 @@ See https://creativecommons.org/licenses/by-sa/4.0/ for details.
 | **在线阅读整本册子** | GitHub Pages：<https://ldxs001.github.io/architecture/> |
 | **下载 PDF / HTML / EPUB** | 发行版 **arch-v1.3.0**（[Gitee](https://gitee.com/wUwproject/architecture/releases/tag/arch-v1.3.0) / [GitHub](https://github.com/Ldxs001/architecture/releases/tag/arch-v1.3.0)，含 PDF 打印版） |
 | **册子源码（Markdown）** | 本目录 `book/`（frontmatter：版权页 / 导读 / 附录 A / 附录 B） |
-| **入书规范** | 仓库根 [`STRUCTURE_GUIDE.md`](../STRUCTURE_GUIDE.md)（单篇规范/清洗/同步/字数/版本规则）；发行说明 [`成册说明_架构解析.md`](../成册说明_架构解析.md) |
+| **入书规范** | 母书仓族系规范 [`Cogito_Scribit/typesetting/STRUCTURE_GUIDE.md`](../../Cogito_Scribit/typesetting/STRUCTURE_GUIDE.md)（清洗/同步/字数/版本规则，架构册差异见其第八章）+ [`成书规范.md`](../../Cogito_Scribit/typesetting/成书规范.md)（书籍/文件夹/文件三结构）；发行说明 [`成册说明_架构解析.md`](../成册说明_架构解析.md) |
 | **构建管线** | `build/`（`python build.py` 一键构建，复用母书管线） |
 
 ## 本册的结构
