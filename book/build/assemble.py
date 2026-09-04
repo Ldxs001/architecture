@@ -30,6 +30,7 @@ STRUCTURE = [
     ("orchestrator-architecture.md", "架构 06 · orchestrator（实验性）", "06｜Orchestrator 架构文档"),
     ("silprespec-orchestrator-architecture.md", "架构 07 · silprespec-orchestrator（实验性）", "07｜silprespec-orchestrator 架构文档"),
     ("技能编排器到agent编排器——编排对象迁移与圈的z轴.md", "架构 08 · 演进收束篇", "08｜技能编排器到 agent 编排器——编排对象迁移与“圈”的 z 轴"),
+    ("99_结语.md", "结语", None),
     ("appendix/统一术语表.md", "附录 A 统一术语表", "附录 A 统一术语表"),
     ("appendix/运行速查.md", "附录 B 运行速查", "附录 B 运行速查"),
 ]

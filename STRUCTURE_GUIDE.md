@@ -85,6 +85,9 @@ Copyright (c) 2026 wUwproject
 - 版本日志为**一行式书籍口径**：一版一行，说清"这版改了什么、规模变化"；根因分析/几何数值/门禁扫描等工程细节只进 commit / Release notes / 成册说明，**不进书**（书籍修订日志不是更新日志）
 - 附录在 `book/appendix/`（内容名文件），frontmatter 只留前置（导读/版权页）；PDF 管线在 `book/build/PDF/make_pdf.py`（字体与产物随位）——与母书 `book/build/PDF/`、排版书布局一致
 
+- **99_结语为三册标配**（arch-v1.3.0 固化）：book/99_结语.md，正文（收束篇殿后）之后、appendix/ 之前装配；收束篇保持末篇不动
+- **仓级文件四类判定**（源：母书仓 STRUCTURE_GUIDE.md）：A 书内内容（进书）；B 仓级规范（STRUCTURE_GUIDE.md；STYLE_GUIDE.md 全族系唯一一份在 Cogito_Scribit/typesetting/）；C 仓级对外（README.md / 成册说明_<卷名>.md / index.html 仓根）；D 杂物一律 archive/
+
 **版本规则**：新增入书篇/附录结构变化/章节数变化 → 次版本 +1（arch-v1.0.2 → arch-v1.1.0：新增演进收束篇架构 08，正文 7→8 篇、11→12 章）；纯清洗修正、文档/规范文档新增 → 修订号 +1（arch-v1.0.1 → arch-v1.0.2）。**章数变化与版本号变化必须同时发生。**
 
 | # | 位置 | 内容 | 更新时机 |
