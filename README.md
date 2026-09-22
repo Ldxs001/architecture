@@ -50,6 +50,7 @@ Copyright (c) 2026 wUwproject
 | 技能编排器到agent编排器——编排对象迁移与圈的z轴.md | 演进收束篇（编排对象迁移论述，架构 08） | 架构论述 |
 | rag-assistant-architecture.md | 本地知识库智能体 | 智能体 |
 | structured-writer-architecture.md | 结构化写作智能体 | 智能体 |
+| podcast-maker-architecture.md | 播客生成智能体 | 智能体 |
 
 ## 目录结构
 
