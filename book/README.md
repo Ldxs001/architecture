@@ -35,7 +35,7 @@ See https://creativecommons.org/licenses/by-sa/4.0/ for details.
 | 附录 A | `appendix/统一术语表.md` | 统一术语表 |
 | 附录 B | `appendix/运行速查.md` | 运行速查 |
 
-全册约 7.7 万字（arch-v1.4.0）。
+全册约 7.8 万字（arch-v1.4.0）。
 
 ## 目录结构
 
