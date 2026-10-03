@@ -5,13 +5,13 @@ Licensed under Creative Commons Attribution-ShareAlike 4.0 International (CC BY-
 See https://creativecommons.org/licenses/by-sa/4.0/ for details.
 -->
 
-# 我思故我写 · 架构解析——七套核心系统的工程实现
+# 我思故我写 · 架构解析——八套核心系统的工程实现
 
 ![书封](cover.png)
 
 > **Cogito, Scribo.** 我思，故我写。
 >
-> 母书《我思故我写》的姊妹卷：母书回答"为什么"，本册回答"怎么做"——七套核心系统的架构设计工程实现。
+> 母书《我思故我写》的姊妹卷：母书回答"为什么"，本册回答"怎么做"——八套核心系统的架构设计工程实现。
 
 > **协议：本书整体采用 CC BY-SA 4.0**（署名-相同方式共享 4.0 国际）。详情见 `frontmatter/00_版权页.md`。
 
@@ -20,7 +20,7 @@ See https://creativecommons.org/licenses/by-sa/4.0/ for details.
 | 方式 | 入口 |
 |------|------|
 | **在线阅读整本册子** | GitHub Pages：<https://ldxs001.github.io/architecture/> |
-| **下载 PDF / HTML / EPUB** | 发行版 **arch-v1.3.0**（[Gitee](https://gitee.com/wUwproject/architecture/releases/tag/arch-v1.3.0) / [GitHub](https://github.com/Ldxs001/architecture/releases/tag/arch-v1.3.0)，含 PDF 打印版） |
+| **下载 PDF / HTML / EPUB** | 发行版 **arch-v1.4.0**（[Gitee](https://gitee.com/wUwproject/architecture/releases/tag/arch-v1.4.0) / [GitHub](https://github.com/Ldxs001/architecture/releases/tag/arch-v1.4.0)，含 PDF 打印版） |
 | **册子源码（Markdown）** | 本目录 `book/`（frontmatter：版权页 / 导读 / 附录 A / 附录 B） |
 | **入书规范** | 母书仓族系规范 [`Cogito_Scribit/typesetting/STRUCTURE_GUIDE.md`](../../Cogito_Scribit/typesetting/STRUCTURE_GUIDE.md)（清洗/同步/字数/版本规则，架构册差异见其第八章）+ [`BOOK_GUIDE.md`](../../Cogito_Scribit/typesetting/BOOK_GUIDE.md)（成书规范，书籍/文件夹/文件三结构）；发行说明 [`成册说明_架构解析.md`](../成册说明_架构解析.md) |
 | **构建管线** | `build/`（`python build.py` 一键构建，复用母书管线） |
@@ -30,12 +30,12 @@ See https://creativecommons.org/licenses/by-sa/4.0/ for details.
 | 部分 | 目录 | 内容 |
 |------|------|------|
 | 版权页 | `frontmatter/00_版权页.md` | 版本、协议、署名 |
-| 导读 | `frontmatter/00_导读.md` | 七套系统 + 演进收束篇的阅读路径 |
-| 正文八篇 | 仓库根目录 `*-architecture.md` | skill-standardization / semantic-split / activity-duration-estimation / rag-assistant / structured-writer（成熟 5 篇）+ orchestrator / silprespec-orchestrator（实验性 2 篇）+ 演进收束篇《技能编排器到 agent 编排器——编排对象迁移与"圈"的 z 轴》（架构 08，非系统） |
+| 导读 | `frontmatter/00_导读.md` | 八套系统 + 两篇演进收束篇的阅读路径 |
+| 正文十篇 | 仓库根目录 `*-architecture.md` 与论述篇 | skill-standardization / semantic-split / activity-duration-estimation / rag-assistant / structured-writer / podcast-maker（成熟 6 篇）+ orchestrator / silprespec-orchestrator（实验性 2 篇）+ 演进收束篇《技能编排器到 agent 编排器——编排对象迁移与"圈"的 z 轴》（架构 09）+ 演进纪律收束篇《从"越改越不敢动"到放心改——施工地图、功能解耦与统一推动点位》（架构 10）（收束 2 篇，非系统） |
 | 附录 A | `appendix/统一术语表.md` | 统一术语表 |
 | 附录 B | `appendix/运行速查.md` | 运行速查 |
 
-全册约 4.8 万字（arch-v1.3.0）。
+全册约 7.5 万字（arch-v1.4.0）。
 
 ## 目录结构
 

@@ -12,7 +12,7 @@ Copyright (c) 2026 wUwproject
 | 母书 | 姊妹卷 · 排版 | 姊妹卷 · 架构（本仓库） |
 |------|--------------|----------------------|
 | <a href="https://gitee.com/wUwproject/Cogito_Scribit/blob/main/book/README.md"><img src="assets/mother-cover.png" width="330" alt="《我思故我写》"></a> | <a href="https://gitee.com/wUwproject/Cogito_Scribit/blob/main/typesetting/book/README.md"><img src="assets/typ-cover.png" width="330" alt="《排版解析》"></a> | <a href="book/README.md"><img src="book/cover.png" width="330" alt="《架构解析》"></a> |
-| **我思故我写**——一本 AI 写成的书 | **排版解析**——五层排版如何把一篇文章变成一本书 | **架构解析**——七套核心系统的工程实现 |
+| **我思故我写**——一本 AI 写成的书 | **排版解析**——五层排版如何把一篇文章变成一本书 | **架构解析**——八套核心系统的工程实现 |
 | 回答"为什么" | 回答"怎么排" | 回答"怎么做" |
 
 ## 仓库定位
@@ -26,9 +26,9 @@ Copyright (c) 2026 wUwproject
 
 ## 架构解析（姊妹卷）
 
-本仓库 8 篇核心文档已汇编为册子《**我思故我写 · 架构解析——七套核心系统的工程实现**》（arch-v1.3.0，约 4.8 万字，CC BY-SA 4.0）——母书《我思故我写》的姊妹卷：母书回答"为什么"，本册回答"怎么做"。
+本仓库 10 篇核心文档已汇编为册子《**我思故我写 · 架构解析——八套核心系统的工程实现**》（arch-v1.4.0，约 7.5 万字，CC BY-SA 4.0）——母书《我思故我写》的姊妹卷：母书回答"为什么"，本册回答"怎么做"。
 
-收录篇目：skill-standardization / semantic-split / activity-duration-estimation / rag-assistant / structured-writer（成熟 5 篇）+ orchestrator / silprespec-orchestrator（实验性 2 篇，编排器两代）+ 演进收束篇《技能编排器到 agent 编排器——编排对象迁移与"圈"的 z 轴》（架构 08，以编排器两代为标本的论述篇，非系统）。
+收录篇目：skill-standardization / semantic-split / activity-duration-estimation / rag-assistant / structured-writer / podcast-maker（成熟 6 篇）+ orchestrator / silprespec-orchestrator（实验性 2 篇，编排器两代）+ 演进收束篇《技能编排器到 agent 编排器——编排对象迁移与"圈"的 z 轴》（架构 09，编排器演进论述）与《从"越改越不敢动"到放心改——施工地图、功能解耦与统一推动点位》（架构 10，演进纪律论述）（收束 2 篇，非系统）。
 
 **册子的在线阅读、下载（PDF / HTML / EPUB）与构建入口统一见 [`book/README.md`](book/README.md)，发行说明见 [`成册说明_架构解析.md`](成册说明_架构解析.md)；入书规范（STRUCTURE_GUIDE / STYLE_GUIDE / BOOK_GUIDE）存于母书仓 `Cogito_Scribit/typesetting/`（族系规范之家，本仓不持有规范文件）。**
 
@@ -47,7 +47,8 @@ Copyright (c) 2026 wUwproject
 | local-rag-builder-architecture.md | 本地 RAG 搭建 | 技能 |
 | orchestrator-architecture.md | 链驱动编排引擎 | 智能体 |
 | silprespec-orchestrator-architecture.md | 前置规范编排器 | 智能体 |
-| 技能编排器到agent编排器——编排对象迁移与圈的z轴.md | 演进收束篇（编排对象迁移论述，架构 08） | 架构论述 |
+| 技能编排器到agent编排器——编排对象迁移与圈的z轴.md | 演进收束篇（编排对象迁移论述，架构 09） | 架构论述 |
+| 从越改越不敢动到放心改——施工地图、功能解耦与统一推动点位.md | 演进纪律收束篇（越改越不敢动的三层治理，架构 10） | 架构论述 |
 | rag-assistant-architecture.md | 本地知识库智能体 | 智能体 |
 | structured-writer-architecture.md | 结构化写作智能体 | 智能体 |
 | podcast-maker-architecture.md | 播客生成智能体 | 智能体 |
