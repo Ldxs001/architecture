@@ -9,7 +9,7 @@ See https://creativecommons.org/licenses/by-sa/4.0/ for details.
 
 > 结构化写作智能体 — 双线架构：通用写作线（模板驱动子结构级逐段写作）+ 小说模式线（章级规划→写作→章检→修复→全文三检）。
 > 作者：wUwproject | 许可证：Apache 2.0
-> 更新：2026-08-20 (v3.1.8) — 小说线配置统一源 nover_config.py（常量收拢：篇幅/温度/max_tokens/关键词放大）
+> 更新：2026-10-03 (v3.1.14) — 推理审核判定范式统一（级别定义+正反例）→ detail 三要素可定位 → 引文回验（伪造审核代码层拦截）；章内/章级检测分离；web_ui toast 化 + 拼合路由修复
 
 ---
 
@@ -59,6 +59,8 @@ Structured Writer 是**双线架构**的结构化写作智能体：
 | **文件真相源 > session 状态** | 章级/段级续写跳过判定以磁盘文件为准，防 session 与磁盘分叉重复重写 |
 | **跳过 = 通过** | 修复弹窗：勾选=重构，不勾选/全部跳过=立即标记通过（不再重检） |
 | **全文三检只检全文** | 全文三检仅在全书所有章 done 后触发一次（"if 规划 else 全文三检"） |
+| **章内检测不产章级问题** | 章内推理审核 sub 必填、非法/缺段直接丢弃；章级/跨章判定归全文完结层（finalize_novel）统一做，两级互不污染 |
+| **结构级校验 > 语义猜测** | 代码只做枚举/结构校验（_classify_items）；引文回验：detail 的「」引文必须逐字存在于对应段正文，否则视为伪造审核丢弃——语义对错归 prompt（级别定义+正反例），代码绝不猜语义 |
 
 ---
 
@@ -97,22 +99,26 @@ structured-writer/
 ├── main.py                            # ★ 入口（HTTP 服务器 + 对外写作 API 8777）
 ├── setup.bat                          # Windows 一键启动（任意 Python 版本，自动装 transformers）
 ├── requirements.txt                   # 依赖清单（transformers/torch，无 llama-cpp-python）
-├── CHANGELOG.md                       # 版本更新日志（1279 行，v0.1.0 → v3.1.0b5）
+├── CHANGELOG.md                       # 版本更新日志（Keep a Changelog 格式，版本号唯一源见 __init__）
 ├── SCHEMA.md                          # 方案文档
 ├── README.md                          # 项目说明
 ├── LICENSE                            # Apache 2.0
+├── NOTICE                             # Apache-2.0 归属声明（v3.1.9）
+├── pyproject.toml                     # PyPI 打包配置（dynamic version 动态读 __init__）
+├── scripts/check_version.py           # 版本一致性门禁（__init__/CHANGELOG/pyproject/README 头部四点校验）
+├── docs/                              # 设计文档（repair_engine_design.md 等）
 ├── blueprint.json                     # PyPI 发布蓝图
 ├── config.json                        # 默认配置（不含模板）
 │
 ├── structured_writer/                 # ★ 智能体核心包（PyPI 包名 structured-writer-ldxs）
-│   ├── __init__.py                    # 版本号唯一源（3.1.0b5）
-│   ├── web_ui.py                      # HTTP 服务器 + 前端（~7000 行，11 个 /api/novel/* 端点）
+│   ├── __init__.py                    # 版本号唯一源
+│   ├── web_ui.py                      # HTTP 服务器 + 前端（GET/POST 路由表分发；通知统一 toast，无原生弹框）
 │   ├── planner.py                     # 通用线大纲规划器（LLM 生成 JSON 大纲）
 │   ├── writer.py                      # 通用线串行写作器（两级 RAG + 续写 + 引用后处理）
 │   ├── rag_client.py                  # RAG 客户端（调 rag-assistant :8767）
 │   ├── llm_client.py                  # LLM 统一客户端（纯 HTTP：LM Studio / Ollama）
 │   ├── state_manager.py               # 会话状态管理 + 修复提示（_repair_hints + repair_pending）
-│   ├── citation_validator.py          # 引用验证（扫描+报告）
+│   ├── citation_validator.py          # 引用扫描+报告（LLM 判定已删——引用编号由 all_rag_headers 前置规范确定性完成）
 │   ├── config_manager.py              # 配置读写 + 模板分离存储 + 旧格式迁移
 │   ├── external_api.py                # 对外写作 API（/api/write，8777 独立端口）
 │   ├── aux_parser.py                  # 辅助解析
@@ -123,7 +129,7 @@ structured-writer/
 │   │   ├── novel_workflow_engine.py   # 章检/全文三检编排（子进程 finalize-chapter/finalize-novel）
 │   │   ├── novel_repair_engine.py     # 修复引擎（T0 自动修/T1 重构、轮次、三检当场重检）
 │   │   ├── novel_4dim_check.py        # 章检 4 维判定（时间/情绪/话题/角色，8B 或 3B）
-│   │   ├── novel_reasoning_check.py   # 推理审核 R1（7B，5 维）
+│   │   ├── novel_reasoning_check.py   # 推理审核 R1（5 维；级别定义+正反例+detail 三要素+引文回验）
 │   │   ├── novel_fidelity.py          # 大纲忠实度检查（全文三检）
 │   │   ├── novel_pledge_check.py      # 全文承诺检查（全文三检）
 │   │   ├── novel_logic_check.py       # 逻辑检查（4维 回退链）
@@ -260,7 +266,7 @@ plan_novel_outline(...)                  # 主入口：场景配置 → 章数�
 | 4维 | 时间衔接/情绪匹配/话题过渡/角色承接（共享上下文 + 判定提示词分隔，叙事目的哲学） | 8B（/no_think）或 3B |
 | 格式 | 末行标记/禁用模式/文件数 | 规则（毫秒级） |
 | 逻辑 | 角色消失/时间回退/概述偏离/实体关系断裂 | 3B（4维 回退链） |
-| 推理 R1 | 因果合理性/情绪弧/行为一致/对话匹配/论证可靠性（5 维） | 7B |
+| 推理 R1 | 因果合理性/人物行为一致性/情绪弧自然度/对话匹配度/论证可靠性（5 维）；判定级别定义+✅/❌正反例+一致性铁律（v3.1.11）；detail 三要素=「」引用+对照+方向 30-120 字（v3.1.12）；引文回验+段定位校验——引文不在正文即伪造审核代码层丢弃（v3.1.13）；sub 必填，章级问题不落章内（v3.1.11） | 7B |
 
 **全文三检（finalize-novel，全书 done 后）**：
 
@@ -347,6 +353,7 @@ plan_novel_outline(...)                  # 主入口：场景配置 → 章数�
 | `/api/rag/status|start|stop` | - | RAG 状态/冷启动/停止 |
 | `/api/batch_auto` / `/api/batch_progress` | - | 批量自动撰写 |
 | `/api/outputs` / `read` / `delete` | - | 已完成文章管理 |
+| `/api/outputs/merge` | POST | 章级 md 拼合为整本（v3.1.14 修复：自 v3.1.3 起误注册 GET 表致拼合 404，从未成功） |
 | `/api/examples` | - | 快速范例 |
 
 **小说线（/api/novel/*）：**
@@ -400,6 +407,8 @@ plan_novel_outline(...)                  # 主入口：场景配置 → 章数�
 ## 七、UI 布局
 
 对话界面为三栏布局（会话管理 / 对话交互 / 已完成文章）。配置 Tab 含：模型配置（后端下拉 LM Studio/Ollama + 地址 + 模型列表）、模板管理、RAG 配置、写作参数、**小说质检区**（章内检测/全文检测分组 + 点位标注 + 统一管理勾选 + 检测模型按钮）。
+
+通知与确认统一走自绘组件（v3.1.14）：错误/警告/成功用右上角 toast（`showToast`：error 红 6s / warn 橙 3.5s / info 绿 3.5s，点击即消），删除走 inline 二次确认——全站无浏览器原生 alert/confirm/prompt。
 
 ### 7.1 小说确认面板
 
@@ -470,6 +479,11 @@ generate_novel_article() 逐章循环：
 
 | 版本 | 新增/变更要点 |
 |------|-------------|
+| v3.1.14 | web_ui：拼合路由 GET→POST 归位（自 3.1.3 起拼合从未成功过）；12 处原生 alert() 全部 toast 化，confirm/prompt 零残留 |
+| v3.1.13 | 推理审核引文回验（「」引文逐字回验正文，伪造审核丢弃）+ 段定位校验；prompt 术语统一（正文唯一称谓）+ 评估对象逐维写明；check_version 四点校验（README 头部版本戳：有则必须等于 __version__，中英文标签泛化） |
+| v3.1.12 | 推理审核 detail 三要素（「」引用+对照+方向，30-120 字）；正例去泛泛句——修复引擎拿到可定位问题，斩断"盲重写→再审→再报"死循环 |
+| v3.1.11 | 判定型 prompt 范式统一（级别定义+✅/❌正反例+一致性铁律，8 处）；代码删语义关键词猜测只留结构校验（_classify_items）；章内/章级检测分离（sub 必填，章级归 finalize_novel） |
+| v3.1.9 | NOTICE（Apache-2.0 归属声明） |
 | v3.1.0b5 | 8B/7B 全链路实机验证（7B 推理审核 / 8B /no_think 关思考）；纯验证无代码改动 |
 | v3.1.0b4 | lms ls 裸名 key 过滤修复；8B/7B 移入 LM Studio 模型库（自动识别无需 import） |
 | v3.1.0b3 | 判定窗口 UI 移除（固定 16384）；ollama 场景禁用统一管理 |
@@ -495,4 +509,4 @@ generate_novel_article() 逐章循环：
 
 ---
 
-*最后更新：2026-08-20 (v3.1.8)*
+*最后更新：2026-10-03 (v3.1.14)*
