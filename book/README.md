@@ -31,11 +31,11 @@ See https://creativecommons.org/licenses/by-sa/4.0/ for details.
 |------|------|------|
 | 版权页 | `frontmatter/00_版权页.md` | 版本、协议、署名 |
 | 导读 | `frontmatter/00_导读.md` | 八套系统 + 两篇收束篇的阅读路径 |
-| 正文十篇 | 仓库根目录 `*-architecture.md` 与论述篇 | skill-standardization / semantic-split / activity-duration-estimation / rag-assistant / structured-writer / podcast-maker（成熟 6 篇）+ orchestrator / silprespec-orchestrator（实验性 2 篇）+ 演进收束篇《技能编排器到 agent 编排器——编排对象迁移与"圈"的 z 轴》（架构 09）+ 施工层级收束篇《施工层级——多层规划、功能解耦与统一推动点位》（架构 10）（收束 2 篇，非系统） |
+| 正文十篇 | 仓库根目录 `*-architecture.md` 与论述篇 | skill-standardization / semantic-split / activity-duration-estimation / rag-assistant / structured-writer / podcast-maker（成熟 6 篇）+ orchestrator / silprespec-orchestrator（实验性 2 篇）+ 演进收束篇《技能编排器到 agent 编排器——编排对象迁移与"圈"的 z 轴》（架构 09）+ 施工层级收束篇《施工层级——画地图定位、功能解耦与统一各级推动点位》（架构 10）（收束 2 篇，非系统） |
 | 附录 A | `appendix/统一术语表.md` | 统一术语表 |
 | 附录 B | `appendix/运行速查.md` | 运行速查 |
 
-全册约 7.6 万字（arch-v1.4.0）。
+全册约 7.7 万字（arch-v1.4.0）。
 
 ## 目录结构
 
